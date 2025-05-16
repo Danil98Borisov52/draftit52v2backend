@@ -1,4 +1,4 @@
-package ru.habr.resourceserver.config;
+package ru.it52.resourceserver.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import ru.habr.resourceserver.error.Error;
-import ru.habr.resourceserver.error.Message;
+import ru.it52.resourceserver.error.Error;
+import ru.it52.resourceserver.error.Message;
 
 import java.io.IOException;
 

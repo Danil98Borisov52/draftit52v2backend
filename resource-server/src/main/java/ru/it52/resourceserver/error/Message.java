@@ -1,4 +1,4 @@
-package ru.habr.resourceserver.error;
+package ru.it52.resourceserver.error;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;

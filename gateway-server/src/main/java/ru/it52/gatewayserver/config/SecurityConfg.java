@@ -1,4 +1,4 @@
-package ru.habr.gatewayserver.config;
+package ru.it52.gatewayserver.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

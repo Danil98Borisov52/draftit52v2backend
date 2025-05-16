@@ -1,4 +1,4 @@
-package ru.habr.gatewayserver;
+package ru.it52.gatewayserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,13 +1,13 @@
-package ru.habr.habrkeycloakapigateway;
+package ru.it52.keycloakapigateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HabrKeycloakApigatewayApplication {
+public class KeycloakApigatewayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(HabrKeycloakApigatewayApplication.class, args);
+        SpringApplication.run(KeycloakApigatewayApplication.class, args);
     }
 
 }

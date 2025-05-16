@@ -8,11 +8,11 @@
         <version>3.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>ru.habr</groupId>
-    <artifactId>habr-keycloak-apigateway</artifactId>
+    <groupId>ru.it52</groupId>
+    <artifactId>draftit52v2backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>habr-keycloak-apigateway</name>
-    <description>habr-keycloak-apigateway</description>
+    <name>draftit52v2backend</name>
+    <description>draftit52v2backend</description>
     <properties>
         <java.version>17</java.version>
     </properties>

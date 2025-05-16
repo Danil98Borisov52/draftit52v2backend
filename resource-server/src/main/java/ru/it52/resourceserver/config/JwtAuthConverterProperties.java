@@ -1,4 +1,4 @@
-package ru.habr.resourceserver.config;
+package ru.it52.resourceserver.config;
 
 
 import lombok.Data;
@@ -14,4 +14,20 @@ public class JwtAuthConverterProperties {
 
     private String resourceId;
     private String principalAttribute;
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public String getPrincipalAttribute() {
+        return principalAttribute;
+    }
+
+    public void setPrincipalAttribute(String principalAttribute) {
+        this.principalAttribute = principalAttribute;
+    }
 }

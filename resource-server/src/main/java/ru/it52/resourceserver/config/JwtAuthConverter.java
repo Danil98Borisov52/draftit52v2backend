@@ -1,4 +1,4 @@
-package ru.habr.resourceserver.config;
+package ru.it52.resourceserver.config;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
