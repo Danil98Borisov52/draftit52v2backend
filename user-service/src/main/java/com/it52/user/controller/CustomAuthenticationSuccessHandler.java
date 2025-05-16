@@ -44,7 +44,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         String email = oAuth2User.getAttribute("email");
         String firstName = oAuth2User.getAttribute("given_name");
         String lastName = oAuth2User.getAttribute("family_name");
-        String password = oAuth2User.getAttribute("preferred_username");
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {

@@ -47,9 +47,9 @@ public class KeycloakAdminClientService {
 
         ArrayNode credentials = payload.putArray("credentials");
         ObjectNode password = JsonNodeFactory.instance.objectNode();
-        password.put("type", "password");
-        password.put("value", user.getPassword());
-        password.put("temporary", false);
+        //password.put("type", "password");
+        //password.put("value", user.getPassword());
+        //password.put("temporary", false);
         credentials.add(password);
 
         webClient.post()
