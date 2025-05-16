@@ -1,0 +1,28 @@
+{
+  "realm": "it52",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "user-service",
+      "secret": "nxp8gItCGXEGfyjtUO98i6d4zbBcwLhL",
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
