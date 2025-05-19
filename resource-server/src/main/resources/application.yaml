@@ -1,0 +1,39 @@
+server:
+  port: 8090
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/it52
+          jwk-set-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/certs
+      client:
+        registration:
+          keycloak:
+            client-id: it52-client
+            client-secret: 6yV5Xoo7MPao1EdY878bikRMZmqXLMk5
+            scope: openid
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            issuer-uri: http://keycloak:8080/realms/it52
+            authorization-uri: http://localhost:8080/realms/it52/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/realms/it52/protocol/openid-connect/token
+            user-info-uri: http://localhost:8080/realms/it52/protocol/openid-connect/userinfo
+            jwk-set-uri: http://localhost:8080/realms/it52/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+jwt:
+  auth:
+    converter:
+      resource-id: it52-client
+      principal-attribute: preferred_username

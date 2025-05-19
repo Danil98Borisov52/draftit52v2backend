@@ -9,13 +9,13 @@ import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcCli
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfg {
-    @Autowired
-    private ReactiveClientRegistrationRepository registrationRepository;
+
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveClientRegistrationRepository registrationRepository) {
         http
                 .authorizeExchange()
                 .anyExchange()
@@ -24,13 +24,13 @@ public class SecurityConfg {
                 .oauth2Login()
                 .and()
                 .logout()
-                .logoutSuccessHandler(oidcLogoutSuccessHandler())
+                .logoutSuccessHandler(oidcLogoutSuccessHandler(registrationRepository))
         ;
 
         return http.build();
     }
     @Bean
-    public ServerLogoutSuccessHandler oidcLogoutSuccessHandler() {
+    public ServerLogoutSuccessHandler oidcLogoutSuccessHandler(ReactiveClientRegistrationRepository registrationRepository) {
         OidcClientInitiatedServerLogoutSuccessHandler successHandler = new OidcClientInitiatedServerLogoutSuccessHandler(registrationRepository);
         successHandler.setPostLogoutRedirectUri("http://localhost:8070/");
         return successHandler;

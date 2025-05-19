@@ -13,11 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
     private final KafkaProducer kafkaProducer;
+
+    public AuthController(UserService userService, KafkaProducer kafkaProducer) {
+        this.userService = userService;
+        this.kafkaProducer = kafkaProducer;
+    }
 
     @GetMapping("/success")
     public ResponseEntity<UserDTO> handleOAuthLogin(@AuthenticationPrincipal OidcUser oidcUser) {

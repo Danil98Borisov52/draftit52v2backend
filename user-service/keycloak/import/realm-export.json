@@ -4,7 +4,7 @@
   "clients": [
     {
       "clientId": "user-service",
-      "secret": "nxp8gItCGXEGfyjtUO98i6d4zbBcwLhL",
+      "secret": "6yV5Xoo7MPao1EdY878bikRMZmqXLMk5",
       "protocol": "openid-connect",
       "redirectUris": ["*"],
       "publicClient": false,

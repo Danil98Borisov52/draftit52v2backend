@@ -1,0 +1,30 @@
+server:
+  port: 8090
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/it52
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: it52-client
+            client-secret: 6yV5Xoo7MPao1EdY878bikRMZmqXLMk5
+            authorization-grant-type: authorization_code
+            scope: openid
+jwt:
+  auth:
+    converter:
+      resource-id: it52-client
+      principal-attribute: preferred_username

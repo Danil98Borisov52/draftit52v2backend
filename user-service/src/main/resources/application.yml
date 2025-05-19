@@ -20,9 +20,21 @@ spring:
         registration:
           keycloak:
             client-id: it52-client
-            client-secret: 7O8qVk3oCvrtCasdYseYsoB8teECIviC
+            client-secret: 6yV5Xoo7MPao1EdY878bikRMZmqXLMk5
             scope: openid, profile, email
+            provider: keycloak
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
         provider:
           keycloak:
-            issuer-uri: http://localhost:8080/realms/it52
+            authorization-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/auth
+            issuer-uri: http://keycloak:8080/realms/it52
+            token-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/token
+            user-info-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/userinfo
+            jwk-set-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.security.oauth2.client: TRACE

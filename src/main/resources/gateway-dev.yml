@@ -1,0 +1,41 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      default-filters:
+        - TokenRelay=
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: it52-client
+            client-secret: 6yV5Xoo7MPao1EdY878bikRMZmqXLMk5
+            scope: openid
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            issuer-uri: http://keycloak:8080/realms/it52
+            authorization-uri: http://localhost:8080/realms/it52/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/realms/it52/protocol/openid-connect/token
+            user-info-uri: http://localhost:8080/realms/it52/protocol/openid-connect/userinfo
+            jwk-set-uri: http://localhost:8080/realms/it52/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+logging:
+  level:
+    org.springframework.security.oauth2.client.registration: DEBUG
+
+server:
+  port: 8081
