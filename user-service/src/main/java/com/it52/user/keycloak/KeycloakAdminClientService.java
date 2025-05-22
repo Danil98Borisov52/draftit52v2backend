@@ -22,7 +22,7 @@ public class KeycloakAdminClientService {
         Map<String, String> form = Map.of(
                 "grant_type", "client_credentials",
                 "client_id", "user-service",
-                "client_secret", "6yV5Xoo7MPao1EdY878bikRMZmqXLMk5"
+                "client_secret", "vHgP94O0lsGldQHfcHreP02y4X0PsRKQ"
         );
         MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
         multiValueMap.setAll(form);

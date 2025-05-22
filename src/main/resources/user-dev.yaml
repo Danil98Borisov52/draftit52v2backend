@@ -20,7 +20,7 @@ spring:
         registration:
           keycloak:
             client-id: it52-client
-            client-secret: 6yV5Xoo7MPao1EdY878bikRMZmqXLMk5
+            client-secret: vHgP94O0lsGldQHfcHreP02y4X0PsRKQ
             scope: email
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:

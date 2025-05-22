@@ -3,8 +3,8 @@
   "enabled": true,
   "clients": [
     {
-      "clientId": "user-service",
-      "secret": "6yV5Xoo7MPao1EdY878bikRMZmqXLMk5",
+      "clientId": "it52-client",
+      "secret": "vHgP94O0lsGldQHfcHreP02y4X0PsRKQ",
       "protocol": "openid-connect",
       "redirectUris": ["*"],
       "publicClient": false,
