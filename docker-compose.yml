@@ -108,7 +108,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8071
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
     networks:
       - app-network
 
@@ -125,7 +125,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8071
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
     networks:
       - app-network
 
@@ -137,6 +137,7 @@ services:
     ports:
       - "8085:8085"
     depends_on:
+      - eureka-server
       - postgres
       - keycloak
     environment:
@@ -154,6 +155,7 @@ services:
     ports:
       - "8086:8086"
     depends_on:
+      - eureka-server
       - postgres
       - keycloak
       - kafka

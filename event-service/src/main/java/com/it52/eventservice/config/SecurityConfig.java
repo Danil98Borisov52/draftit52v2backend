@@ -16,11 +16,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeHttpRequests(authz -> {
                             try {
                                 authz
-                                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
-                                        .requestMatchers("/api/events/new").permitAll()
+                                        //.requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
+                                        //.requestMatchers("/api/events/new").permitAll()
                                         .anyRequest().authenticated()
                                         .and()
                                         .exceptionHandling().accessDeniedHandler(accessDeniedHandler());

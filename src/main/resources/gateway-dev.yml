@@ -28,10 +28,10 @@ spring:
         provider:
           keycloak:
             issuer-uri: http://keycloak:8080/realms/it52
-            authorization-uri: http://localhost:8080/realms/it52/protocol/openid-connect/auth
-            token-uri: http://localhost:8080/realms/it52/protocol/openid-connect/token
-            user-info-uri: http://localhost:8080/realms/it52/protocol/openid-connect/userinfo
-            jwk-set-uri: http://localhost:8080/realms/it52/protocol/openid-connect/certs
+            authorization-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/auth
+            token-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/token
+            user-info-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/userinfo
+            jwk-set-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/certs
             user-name-attribute: preferred_username
 logging:
   level:

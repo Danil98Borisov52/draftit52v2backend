@@ -46,13 +46,15 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                 )
                 .logout(logout -> logout
+                        .logoutUrl("/api/users/logout")
                         .logoutSuccessHandler(oidcLogoutSuccessHandler())
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendRedirect("/oauth2/authorization/keycloak");
+                            response.sendRedirect("http://localhost:8085/oauth2/authorization/keycloak");
                         })
                 );
 
