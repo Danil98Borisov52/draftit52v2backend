@@ -40,7 +40,6 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal OAuth2User principal) {
-        //return new ResponseEntity<>(new Message(true, "Hello from Admin"), HttpStatus.OK);
         String email = principal.getAttribute("email");
         return userRepository.findByEmail(email)
                 .map(user -> ResponseEntity.ok(UserDTO.from(user)))
@@ -48,9 +47,7 @@ public class UserController {
     }
 
     // Получение информации о пользователе по ID
-/*    @GetMapping("/profile/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
-        //User user = userService.getUserById(id);*/
+
     @GetMapping("/profile/{sub}")
     public ResponseEntity<UserDTO> getUser(@PathVariable String sub) {
         User user = userService.getUserBySub(sub);
