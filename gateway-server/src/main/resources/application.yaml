@@ -19,20 +19,26 @@ spring:
           uri: http://keycloak:8080
           predicates:
             - Path=/realms/**
+          filters:
+            - TokenRelay=
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
-            - RemoveRequestHeader=Cookie
+            - TokenRelay=
         - id: event-service
           uri: lb://event-service
           predicates:
             - Path=/api/events/**
+          filters:
+            - TokenRelay=
         - id: resource-service
           uri: lb://resource-service
           predicates:
             - Path=/api/resources/**
+          filters:
+            - TokenRelay=
   security:
     oauth2:
       client:
