@@ -167,6 +167,31 @@ services:
     networks:
       - app-network
 
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - eureka-server
+      - postgres
+      - kafka
+    environment:
+     SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+     NOTIFICATION_EMAIL_USERNAME: danil1998borisovnc@gmail.com
+     NOTIFICATION_EMAIL_PASSWORD: raop mgzy faqc kylr
+     SPRING_MAIL_HOST: smtp.gmail.com
+     SPRING_MAIL_PORT: 587
+     SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+     SPRING_DATASOURCE_USERNAME: postgres
+     SPRING_DATASOURCE_PASSWORD: user
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
