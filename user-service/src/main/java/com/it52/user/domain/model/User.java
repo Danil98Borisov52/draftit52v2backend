@@ -1,9 +1,14 @@
 package com.it52.user.domain.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 @Entity
 @Table(name = "users")
 public class User {
@@ -11,57 +16,46 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "sub")
     private String sub;
-    private String username;
-    private String firstName;
-    private String lastName;
+
+    @Column(name = "email")
     private String email;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-    public String getSub() {
-        return sub;
-    }
+    @Column(name = "nickname")
+    private String username;
 
-    public void setSub(String sub) {
-        this.sub = sub;
-    }
+    @Column(name = "role")
+    private Integer role;
 
-    public String getUsername() {
-        return username;
-    }
+    @Column(name = "first_name")
+    private String firstName;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    @Column(name = "last_name")
+    private String lastName;
 
-    public String getFirstName() {
-        return firstName;
-    }
+    @Column(name = "bio", columnDefinition = "text")
+    private String bio;
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    @Column(name = "avatar_image")
+    private String avatarImage;
 
-    public String getLastName() {
-        return lastName;
-    }
+    @Column(name = "slug")
+    private String slug;
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+    @Column(name = "website")
+    private String website;
 
-    public String getEmail() {
-        return email;
-    }
+    @Column(name = "subscription")
+    private Boolean subscription;
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    @Column(name = "employment")
+    private String employment;
 }

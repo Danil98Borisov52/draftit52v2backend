@@ -1,10 +1,9 @@
 package com.it52.notificationservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.it52.notificationservice.model.Event;
+import com.it52.notificationservice.dto.EventDto;
 import com.it52.notificationservice.util.MailService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -25,19 +24,19 @@ public class NotificationService {
         this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "   ", groupId = "notification-group")
+    @KafkaListener(topics = "event_created", groupId = "notification-group")
     public void listen(String eventJson) {
         try {
             // Десериализация JSON-строки в объект Event
-            Event event = objectMapper.readValue(eventJson, Event.class);
+            EventDto event = objectMapper.readValue(eventJson, EventDto.class);
 
             String subject = "New Event: " + event.getTitle();
             String body = "Event Details:\n" +
                     "Title: " + event.getTitle() + "\n" +
                     "Description: " + event.getDescription() + "\n" +
-                    "Start Date: " + (event.getStartDate() != null ? event.getStartDate() : "Not specified") + "\n" +
-                    "Location: " + event.getLocationName() + " (" + event.getAddress() + ")\n" +
-                    "Tags: " + String.join(", ", event.getTags());
+                    "Start Date: " + (event.getStartedAt() != null ? event.getStartedAt() : "Not specified") + "\n" +
+                    "Location: " + event.getPlace() + " (" + event.getAddressComment() + ")\n" +
+                    "Tags: " + String.join(", "/*, event.()*/);
             logger.info("Sending email to Danil1998borisov1@yandex.ru with subject: {}", subject);
             mailService.sendEmail("Danil1998borisov1@yandex.ru", subject, body);
             logger.info("Email sent successfully");

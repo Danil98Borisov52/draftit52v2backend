@@ -17,11 +17,14 @@ services:
     image: postgres:15
     container_name: postgres
     environment:
-      POSTGRES_DB: userdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: user
+      POSTGRES_DB: it52_mbase501
+      POSTGRES_USER: dborisov
+      POSTGRES_PASSWORD: dborisov
     ports:
       - "5432:5432"
+    volumes:
+      # Монтируем локальную папку в контейнер
+      - /c/Users/dborisov/Downloads/it52v2:/backup
     networks:
       - app-network
 
@@ -141,9 +144,9 @@ services:
       - postgres
       - keycloak
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: user
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/it52_mbase501
+      SPRING_DATASOURCE_USERNAME: dborisov
+      SPRING_DATASOURCE_PASSWORD: dborisov
     networks:
       - app-network
 
@@ -160,9 +163,9 @@ services:
       - keycloak
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: user
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/it52_mbase501
+      SPRING_DATASOURCE_USERNAME: dborisov
+      SPRING_DATASOURCE_PASSWORD: dborisov
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - app-network
