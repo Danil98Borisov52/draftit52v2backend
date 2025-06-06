@@ -42,7 +42,7 @@ public class EventMapper {
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .place(event.getPlace())
-                .authorId(event.getAuthorId())
+                .authorId(event.getAuthor().getSub())
                 .authorName(authorName)
                 .typePrice(event.getTypePriceId() != null
                         ? EnumConverter.toName(EventPriceType.class, event.getTypePriceId())

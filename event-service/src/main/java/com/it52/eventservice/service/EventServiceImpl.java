@@ -34,17 +34,20 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final TaggingRepository taggingRepository;
     private final TagRepository tagRepository;
+    private final AuthorRepository authorRepository;
     private final EventMapper eventMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper,
                             KafkaTemplate<String, Object> kafkaTemplate,
-                            TaggingRepository taggingRepository, TagRepository tagRepository) {
+                            TaggingRepository taggingRepository, TagRepository tagRepository,
+                            AuthorRepository authorRepository) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
         this.kafkaTemplate = kafkaTemplate;
         this.taggingRepository = taggingRepository;
         this.tagRepository = tagRepository;
+        this.authorRepository = authorRepository;
     }
 
 
@@ -52,10 +55,22 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResponseDto createEvent(EventCreateDto dto) {
-        Event event = eventMapper.create(dto);
-        String authorId = SecurityUtils.getCurrentUserId();
+        String sub  = SecurityUtils.getCurrentUserId();
         String authorName = SecurityUtils.getCurrentUsername();
-        event.setAuthorId(authorId);
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        Author author = authorRepository.findBySub(sub)
+                .orElseGet(() -> {
+                Author newAuthor = Author.builder()
+                    .sub(sub)
+                    .authorName(authorName)
+                    .email(email)
+                    .build();
+            return authorRepository.save(newAuthor);
+        });
+
+        Event event = eventMapper.create(dto);
+        event.setAuthor(author);
         Event saved = eventRepository.save(event);
 
         List<String> tagNames = dto.getTags();
@@ -104,10 +119,9 @@ public class EventServiceImpl implements EventService {
 
         Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
         return getEventByStatus(status, kindInt, pageable)
-                .map(event -> toDto(event, getTagsByEvent(event),"Danil"));
-/*        return getEventByStatus(status, kindInt, pageable)
-                .map(event -> toDto(event, getTagsByEvent(event.getId())));*/
+                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event)));
     }
+
     private List<String> getTagsByEvent(Event event) {
         return event.getTaggings().stream()
                 .map(Tagging::getTag)
@@ -116,26 +130,15 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
-/*
-    private List<String> getTagsByEvent(Long eventId) {
-        List<Tagging> taggings = taggingRepository.findByTaggableId(eventId);
-
-        List<Long> tagIds = taggings.stream()
-                .map(Tagging::getTagId)
-                .collect(Collectors.toList());
-
-        List<Tag> tags = tagRepository.findByIdIn(tagIds);
-
-        return tags.stream()
-                .map(Tag::getName)
-                .collect(Collectors.toList());
-    }*/
+    private String getAuthorName(Event event){
+        Author author = authorRepository.findBySub(event.getAuthor().getSub())
+                .orElseThrow(() -> new RuntimeException("Автор с id " + event.getAuthor().getSub() + " не найден"));
+        return author.getAuthorName();
+    }
 
     private Page<Event> getEventByStatus(String status, Integer kindInt, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
-
         EventStatus eventStatus = EventStatus.valueOf(status.toUpperCase());
-
         switch (eventStatus) {
             case FUTURE:
                 return kindInt != null
@@ -155,8 +158,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventResponseDto getEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
-        return toDto(event, getTagsByEvent(event), "Danil");
-        //return toDto(event, getTagsByEvent(event.getId()));
+        return toDto(event, getTagsByEvent(event), getAuthorName(event));
     }
 
     @Override

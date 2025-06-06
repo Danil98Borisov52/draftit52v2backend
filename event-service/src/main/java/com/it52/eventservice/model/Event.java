@@ -30,8 +30,9 @@ public class Event {
     @Column(name = "organizer_id")
     private Long organizerId;
 
-    @Column(name = "author_id")
-    private String authorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", referencedColumnName = "sub")
+    private Author author;
 
     @Column(name = "published")
     private boolean published;
