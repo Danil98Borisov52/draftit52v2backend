@@ -3,12 +3,20 @@ package com.it52.notificationservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.notificationservice.dto.EventDto;
 import com.it52.notificationservice.util.MailService;
+import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+
+import java.io.StringWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Configuration
 @EnableKafka
@@ -18,48 +26,56 @@ public class NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
     private final MailService mailService;
     private final ObjectMapper objectMapper;
+    private final freemarker.template.Configuration freemarkerConfig;
 
-    public NotificationService(MailService mailService, ObjectMapper objectMapper) {
+    public NotificationService(MailService mailService, ObjectMapper objectMapper, freemarker.template.Configuration freemarkerConfig) {
         this.mailService = mailService;
         this.objectMapper = objectMapper;
+        this.freemarkerConfig = freemarkerConfig;
     }
 
     @KafkaListener(topics = "event_created", groupId = "notification-group")
     public void listen(String eventJson) {
         try {
-            // Десериализация JSON-строки в объект EventDto
-            EventDto event = objectMapper.readValue(eventJson, EventDto.class);
 
+            EventDto event = objectMapper.readValue(eventJson, EventDto.class);
             String subject = "Новое мероприятие: " + event.getTitle();
 
-            StringBuilder body = new StringBuilder();
-            body.append("Появилось новое мероприятие!\n\n")
-                    .append("📌 Название: ").append(event.getTitle()).append("\n")
-                    .append("📝 Описание: ").append(event.getDescription()).append("\n")
-                    .append("🗓 Дата начала: ").append(event.getStartedAt() != null ? event.getStartedAt() : "не указана").append("\n")
-                    .append("📍 Место проведения: ").append(event.getPlace()).append("\n")
-                    .append("🏠 Адрес: ").append(event.getAddress()).append("\n");
+            // Подготовка модели для шаблона
+            Map<String, Object> model = new HashMap<>();
+            model.put("title", event.getTitle());
+            model.put("description", event.getDescription());
+            model.put("startedAt", formatDate(event.getStartedAt()));
+            model.put("place", event.getPlace());
+            model.put("address", event.getAddress());
+            model.put("addressComment", event.getAddressComment());
+            model.put("authorName", event.getAuthorName());
+            model.put("typePrice", event.getTypePrice());
+            model.put("status", event.getStatus());
+            model.put("externalUrl", event.getExternalUrl());
+            model.put("tags", event.getTags());
 
-            if (event.getAddressComment() != null && !event.getAddressComment().isBlank()) {
-                body.append("💬 Комментарий к адресу: ").append(event.getAddressComment()).append("\n");
-            }
+            // Загрузка и обработка шаблона
+            Template template = freemarkerConfig.getTemplate("event_notification.ftl");
+            StringWriter stringWriter = new StringWriter();
+            template.process(model, stringWriter);
+            String htmlBody = stringWriter.toString();
 
-            body.append("👤 Автор: ").append(event.getAuthorName()).append("\n")
-                    .append("💰 Участие: ").append(event.getTypePrice()).append("\n")
-                    .append("📄 Статус: ").append(event.getStatus()).append("\n")
-                    .append("🔗 Ссылка: ").append(event.getExternalUrl() != null ? event.getExternalUrl() : "не указана").append("\n");
-
-            if (event.getTags() != null && !event.getTags().isEmpty()) {
-                body.append("🏷 Теги: ").append(String.join(", ", event.getTags())).append("\n");
-            }
-
+            // Отправка письма с HTML
             logger.info("Sending email to Danil1998borisov1@yandex.ru with subject: {}", subject);
-            mailService.sendEmail("Danil1998borisov1@yandex.ru", subject, body.toString());
+            mailService.sendHtmlEmail("Danil1998borisov1@yandex.ru", subject, htmlBody);
             logger.info("Email sent successfully");
 
         } catch (Exception e) {
             logger.error("Failed to process event or send email: {}", e.getMessage(), e);
         }
+    }
+
+    private String formatDate(LocalDateTime date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return (date != null)
+                ? date.format(formatter)
+                : "не указана";
     }
 }
 
