@@ -19,15 +19,15 @@ public class Tagging {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", insertable = false, updatable = false)
+    @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false)
     private Tag tag;
 
     @Column(name = "taggable_type")
     private String taggableType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "taggable_id", insertable = false, updatable = false)
-    private Event taggableId;
+    @JoinColumn(name = "taggable_id", referencedColumnName = "id", nullable = false)
+    private Event taggable;
 
     @Column(name = "context")
     private String context;

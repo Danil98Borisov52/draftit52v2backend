@@ -73,7 +73,7 @@ public class Event {
     private String addressComment;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "taggable_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "taggable_id", referencedColumnName = "id")
     private List<Tagging> taggings;
 
 }

@@ -77,7 +77,7 @@ public class EventServiceImpl implements EventService {
                 Tagging tagging = Tagging.builder()
                         .tag(tag)
                         .taggableType(dto.getKind())
-                        .taggableId(saved)
+                        .taggable(saved)
                         .context("tags")
                         .createAt(LocalDate.now())
                         .build();
