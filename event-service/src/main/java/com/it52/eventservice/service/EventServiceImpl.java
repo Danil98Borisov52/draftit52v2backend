@@ -90,9 +90,9 @@ public class EventServiceImpl implements EventService {
                 savedTagNames.add(tag.getName());
             }
         }
-
-        kafkaTemplate.send("event_created", saved);
-        return eventMapper.toDto(saved, tagNames, authorName);
+        EventResponseDto eventResponseDto = eventMapper.toDto(saved, tagNames, authorName);
+        kafkaTemplate.send("event_created", eventResponseDto);
+        return eventResponseDto;
     }
 
     @Override
