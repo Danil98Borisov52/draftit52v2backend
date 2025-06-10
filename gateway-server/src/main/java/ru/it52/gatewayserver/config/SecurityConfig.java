@@ -2,6 +2,7 @@ package ru.it52.gatewayserver.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
@@ -12,10 +13,16 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -31,11 +38,13 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
                 .csrf().disable()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/realms/**").permitAll() // Доступ к Keycloak без аутентификации
-                        .anyExchange().authenticated()         // Все остальные запросы требуют аутентификации
+                        .pathMatchers("/realms/**").permitAll()
+                        .pathMatchers("/api/events/public/**").permitAll()
+                        .anyExchange().authenticated()
                 )
-                .oauth2Login()// Перенаправление на Keycloak для логина
+                .oauth2Login()
                 .and()
                 .logout()
                 .logoutSuccessHandler(logoutSuccessHandler())
@@ -51,7 +60,7 @@ public class SecurityConfig {
     public ServerLogoutSuccessHandler logoutSuccessHandler() {
         RedirectServerLogoutSuccessHandler successHandler = new RedirectServerLogoutSuccessHandler();
         successHandler.setLogoutSuccessUrl(URI.create(
-                "http://localhost:8085/oauth2/authorization/keycloak"));
+                "http://localhost:8081/oauth2/authorization/keycloak"));
         return successHandler;
     }
 
@@ -62,7 +71,6 @@ public class SecurityConfig {
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri)
                 .webClient(webClient)
                 .build();
-        // Логирование ошибок декодирования
         return token -> jwtDecoder.decode(token)
                 .onErrorResume(e -> {
                     System.err.println("Ошибка декодирования JWT: " + e.getMessage());
@@ -72,5 +80,18 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthConverter() {
         return new JwtAuthenticationConverter();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
