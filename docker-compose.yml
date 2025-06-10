@@ -195,6 +195,28 @@ services:
     networks:
       - app-network
 
+  event-registration-service:
+    build:
+      context: ./event-registration-service
+      dockerfile: Dockerfile
+    container_name: event-registration-service
+    ports:
+      - "8088:8088"
+    depends_on:
+      - eureka-server
+      - event-service
+      - user-service
+      - postgres
+      - keycloak
+      - kafka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/it52_mbase501
+      SPRING_DATASOURCE_USERNAME: dborisov
+      SPRING_DATASOURCE_PASSWORD: dborisov
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
