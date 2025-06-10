@@ -66,5 +66,11 @@ public class EventController {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable Long id) {
+        boolean exists = eventService.existsById(id);
+        return ResponseEntity.ok(exists);
+    }
 }
 

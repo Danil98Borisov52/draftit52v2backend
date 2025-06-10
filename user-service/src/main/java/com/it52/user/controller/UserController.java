@@ -58,6 +58,14 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+
+    @GetMapping("/{sub}/exists")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable String sub) {
+        boolean exists = userService.existsBySub(sub);
+        return ResponseEntity.ok(exists);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());

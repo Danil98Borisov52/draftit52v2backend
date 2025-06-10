@@ -4,6 +4,7 @@ package com.it52.user.config;
 import com.it52.user.controller.CustomAuthenticationSuccessHandler;
 import com.it52.user.repository.UserRepository;
 import com.it52.user.security.CustomOAuth2UserService;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.context.annotation.Bean;
@@ -36,6 +37,16 @@ public class SecurityConfig {
         http
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                );
+
+        return http.build();
+        /*        http
+                .csrf().disable()
+                .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -58,7 +69,7 @@ public class SecurityConfig {
                         })
                 );
 
-        return http.build();
+        return http.build();*/
     }
 
     @Bean

@@ -77,4 +77,8 @@ public class UserService {
             userRepository.save(user);
         }
     }
+
+    public boolean existsBySub(String sub) {
+        return userRepository.findBySub(sub).isPresent();
+    }
 }

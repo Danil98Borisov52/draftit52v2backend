@@ -38,11 +38,11 @@ public class EventMapper {
     public static EventResponseDto toDto(Event event, List<String> tags, String authorName) {
 
         return EventResponseDto.builder()
-                .id(event.getId())
+                //.id(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .place(event.getPlace())
-                .authorId(event.getAuthor().getSub())
+                .authorId(event.getAuthor()!=null ? event.getAuthor().getSub() : "Sub вообще не было, даже в другой таблице")
                 .authorName(authorName)
                 .typePrice(event.getTypePriceId() != null
                         ? EnumConverter.toName(EventPriceType.class, event.getTypePriceId())
@@ -55,7 +55,7 @@ public class EventMapper {
                 .startedAt(event.getStartedAt())
                 .titleImage(event.getTitleImage())
                 .slug(createSlug(event.getStartedAt(), event.getTitle()))
-                .createdAt(event.getCreatedAt())
+                //.createdAt(event.getCreatedAt())
                 .address("MY HOME")
                 .addressComment(event.getAddressComment())
                 .build();

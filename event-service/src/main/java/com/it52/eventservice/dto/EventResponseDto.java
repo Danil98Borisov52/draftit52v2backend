@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 public class EventResponseDto {
 
-    private Long id;
+    //private Long id;
 
     @NotBlank(message = "Название обязательно")
     private String title;
@@ -57,8 +57,8 @@ public class EventResponseDto {
     @Size(max = 10, message = "Можно указать не более 10 тэгов")
     private List<@NotBlank String> tags;
 
-    @NotBlank(message = "Дата создания обязательна")
-    private LocalDateTime createdAt;
+/*    @NotBlank(message = "Дата создания обязательна")
+    private LocalDateTime createdAt;*/
 
     @NotBlank(message = "Адрес обязателен")
     private String address;

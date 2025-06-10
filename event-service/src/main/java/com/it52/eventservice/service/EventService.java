@@ -16,4 +16,5 @@ public interface EventService {
     void approveEvent(Long eventId);
     void deleteEvent(Long eventId);
     EventResponseDto getEvent(String slug);
+    boolean existsById(Long id);
 }

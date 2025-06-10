@@ -43,6 +43,9 @@ spring:
             user-info-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/userinfo
             jwk-set-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/certs
             user-name-attribute: preferred_username
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/it52
 logging:
   level:
     org.springframework.security: DEBUG

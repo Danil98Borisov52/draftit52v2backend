@@ -131,8 +131,15 @@ public class EventServiceImpl implements EventService {
     }
 
     private String getAuthorName(Event event){
-        Author author = authorRepository.findBySub(event.getAuthor().getSub())
-                .orElseThrow(() -> new RuntimeException("Автор с id " + event.getAuthor().getSub() + " не найден"));
+        if (event.getAuthor() == null) {
+            return "Автор остался в другой таблице";
+            //throw new RuntimeException("У события id=" + event.getId() + " не задан автор");
+        }
+
+        String sub = event.getAuthor().getSub();
+        Author author = authorRepository.findBySub(sub)
+                .orElseThrow(() -> new RuntimeException("Автор с sub=" + sub + " не найден"));
+
         return author.getAuthorName();
     }
 
@@ -177,5 +184,10 @@ public class EventServiceImpl implements EventService {
     @Override
     public void deleteEvent(Long id) {
         eventRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return eventRepository.existsById(id);
     }
 }
