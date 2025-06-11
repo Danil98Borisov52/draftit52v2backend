@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,10 +24,10 @@ public class AuthController {
         this.kafkaProducer = kafkaProducer;
     }
 
-    @GetMapping("/success")
+    @PostMapping("/success")
     public ResponseEntity<UserDTO> handleOAuthLogin(@AuthenticationPrincipal OidcUser oidcUser) {
         UserDTO savedUser = userService.processOauthUser(oidcUser);
-        kafkaProducer.sendNewUserEvent(savedUser);
+        //kafkaProducer.sendNewUserEvent(savedUser);
         return ResponseEntity.ok(savedUser);
     }
 }

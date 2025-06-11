@@ -143,10 +143,12 @@ services:
       - eureka-server
       - postgres
       - keycloak
+      - kafka
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/it52_mbase501
       SPRING_DATASOURCE_USERNAME: dborisov
       SPRING_DATASOURCE_PASSWORD: dborisov
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - app-network
 

@@ -21,32 +21,25 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
-    private final UserRepository userRepository;
 
-    public UserController(UserService userService, UserMapper userMapper, UserRepository userRepository) {
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
         this.userMapper = userMapper;
-        this.userRepository = userRepository;
     }
 
-    // Регистрация нового пользователя
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
         User user = userMapper.toEntity(userRegisterDTO);
-        User createdUser = userService.registerUser(user);
-        UserDTO userDTO = userMapper.toDto(createdUser);
-        return new ResponseEntity<>(userDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.registerUser(user), HttpStatus.CREATED);
     }
 
-    @GetMapping("/me")
+/*    @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal OAuth2User principal) {
         String email = principal.getAttribute("email");
         return userRepository.findByEmail(email)
                 .map(user -> ResponseEntity.ok(UserDTO.from(user)))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    // Получение информации о пользователе по ID
+    }*/
 
     @GetMapping("/profile/{sub}")
     public ResponseEntity<UserDTO> getUser(@PathVariable String sub) {

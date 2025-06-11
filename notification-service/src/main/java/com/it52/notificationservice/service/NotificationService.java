@@ -2,6 +2,7 @@ package com.it52.notificationservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.notificationservice.dto.EventDto;
+import com.it52.notificationservice.dto.UserDto;
 import com.it52.notificationservice.util.MailService;
 import freemarker.template.Template;
 import org.slf4j.Logger;
@@ -68,6 +69,34 @@ public class NotificationService {
 
         } catch (Exception e) {
             logger.error("Failed to process event or send email: {}", e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(topics = "user_registered", groupId = "notification-group")
+    public void listenUser(String userJson) {
+        try {
+
+            UserDto user = objectMapper.readValue(userJson, UserDto.class);
+
+            String subject = "Добро пожаловать на платформу!";
+
+            // Подготовка модели для шаблона welcome_email.ftl
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", user.getFirstName());
+            model.put("username", user.getUsername());
+
+            // Загрузка и рендер шаблона
+            Template template = freemarkerConfig.getTemplate("welcome_email.ftl");
+            StringWriter stringWriter = new StringWriter();
+            template.process(model, stringWriter);
+            String htmlBody = stringWriter.toString();
+
+            logger.info("Sending welcome email to {} with subject: {}", user.getEmail(), subject);
+            mailService.sendHtmlEmail(user.getEmail(), subject, htmlBody);
+            logger.info("Welcome email sent successfully");
+
+        } catch (Exception e) {
+            logger.error("Failed to process user registration event or send email: {}", e.getMessage(), e);
         }
     }
 

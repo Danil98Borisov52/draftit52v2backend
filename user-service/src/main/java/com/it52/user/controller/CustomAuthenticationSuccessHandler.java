@@ -1,6 +1,7 @@
 package com.it52.user.controller;
 
 import com.it52.user.domain.model.User;
+import com.it52.user.kafka.KafkaProducer;
 import com.it52.user.repository.UserRepository;
 import com.it52.user.domain.service.UserService;
 import com.it52.user.util.UserMapper;
@@ -22,15 +23,19 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     private final UserMapper userMapper; // если нужен маппинг
     private final UserService userService; // логика создания
     private final PasswordEncoder passwordEncoder; // если нужно
+    private final KafkaProducer kafkaProducer;
+
 
     public CustomAuthenticationSuccessHandler(UserRepository userRepository,
                                               UserService userService,
                                               UserMapper userMapper,
-                                              PasswordEncoder passwordEncoder) {
+                                              PasswordEncoder passwordEncoder,
+                                              KafkaProducer kafkaProducer) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Override
@@ -69,9 +74,11 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     newUser.setSubscription(subscription != null ? subscription : false);
                     newUser.setEmployment(employment);
                     newUser.setCreatedAt(LocalDateTime.now());
+                    newUser.setUpdatedAt(LocalDateTime.now());
                     newUser.setRole(0); // по умолчанию, например, обычный пользователь
                     return userRepository.save(newUser);
                 });
+        kafkaProducer.sendNewUserEvent(user);
 
         response.sendRedirect("/api/users/profile/" + user.getSub());
     }

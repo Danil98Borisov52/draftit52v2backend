@@ -4,6 +4,7 @@ import com.it52.user.domain.model.User;
 import com.it52.user.dto.UserDTO;
 import com.it52.user.exception.UserAlreadyExistsException;
 import com.it52.user.exception.UserNotFoundException;
+import com.it52.user.kafka.KafkaProducer;
 import com.it52.user.keycloak.KeycloakAdminClientService;
 import com.it52.user.repository.UserRepository;
 import com.it52.user.util.UserMapper;
@@ -17,27 +18,30 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final KeycloakAdminClientService keycloakAdminClientService;
     private final UserMapper userMapper;
+    private final KafkaProducer kafkaProducer;
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,KeycloakAdminClientService keycloakAdminClientService,
-                       UserMapper userMapper) {
+
+    public UserService(UserRepository userRepository, KeycloakAdminClientService keycloakAdminClientService,
+                       UserMapper userMapper, KafkaProducer kafkaProducer) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.keycloakAdminClientService = keycloakAdminClientService;
         this.userMapper = userMapper;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
+
     public User getUserBySub(String sub) {
         return userRepository.findBySub(sub)
                 .orElseThrow(() -> new UserNotFoundException(Long.parseLong(sub)));
     }
+
     public UserDTO processOauthUser(OidcUser oidcUser) {
         String email = oidcUser.getEmail();
 
@@ -56,17 +60,21 @@ public class UserService {
                     return userMapper.toDto(userRepository.save(user));
                 });
     }
-    public User registerUser(User user) {
+
+    public UserDTO registerUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new UserAlreadyExistsException("username", user.getUsername());
         }
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new UserAlreadyExistsException("email", user.getEmail());
         }
-        //user.setPassword(passwordEncoder.encode(user.getPassword()));
         keycloakAdminClientService.createUserInKeycloak(user);
+        User savedUser = userRepository.save(user);
+        UserDTO dto = userMapper.toDto(savedUser);
 
-        return userRepository.save(user);
+        //kafkaProducer.sendNewUserEvent(dto);
+
+        return dto;
     }
 
     public void registerIfNotExists(String username, String email, String name) {

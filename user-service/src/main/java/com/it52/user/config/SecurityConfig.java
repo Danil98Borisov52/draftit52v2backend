@@ -34,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthenticationSuccessHandler successHandler) throws Exception {
-        http
+/*        http
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest().authenticated()
@@ -43,8 +43,8 @@ public class SecurityConfig {
                         .jwt(Customizer.withDefaults())
                 );
 
-        return http.build();
-        /*        http
+        return http.build();*/
+                http
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error").permitAll()
@@ -69,7 +69,7 @@ public class SecurityConfig {
                         })
                 );
 
-        return http.build();*/
+        return http.build();
     }
 
     @Bean

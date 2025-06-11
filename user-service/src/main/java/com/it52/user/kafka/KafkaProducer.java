@@ -1,5 +1,6 @@
 package com.it52.user.kafka;
 
+import com.it52.user.domain.model.User;
 import com.it52.user.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -8,13 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class KafkaProducer {
 
-    private final KafkaTemplate<String, UserDTO> kafkaTemplate;
+    private final KafkaTemplate<String, User> kafkaTemplate;
 
-    public KafkaProducer(KafkaTemplate<String, UserDTO> kafkaTemplate) {
+    public KafkaProducer(KafkaTemplate<String, User> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendNewUserEvent(UserDTO user) {
+    public void sendNewUserEvent(User user) {
         kafkaTemplate.send("user_registered", user);
     }
 }
