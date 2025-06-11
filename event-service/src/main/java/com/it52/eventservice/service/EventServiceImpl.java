@@ -169,6 +169,12 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventResponseDto getEventById(Long id){
+        Event event = eventRepository.findById(id).get();
+        return toDto(event, getTagsByEvent(event), getAuthorName(event));
+    }
+
+    @Override
     public List<Event> getPendingApproval() {
         return eventRepository.findByPublishedFalse();
     }
@@ -184,10 +190,5 @@ public class EventServiceImpl implements EventService {
     @Override
     public void deleteEvent(Long id) {
         eventRepository.deleteById(id);
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        return eventRepository.existsById(id);
     }
 }

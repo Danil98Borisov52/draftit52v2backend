@@ -2,6 +2,7 @@ package com.it52.eventregistrationservice.impl;
 
 import com.it52.eventregistrationservice.client.EventServiceClient;
 
+import com.it52.eventregistrationservice.dto.EventDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,19 +24,21 @@ public class EventServiceClientImpl implements EventServiceClient {
     }
 
     @Override
-    public boolean exists(String token, Long eventId) {
+    public EventDto getEventById(String token, Long eventId) {
         logger.info("Sending request to event-service for eventId: {}", eventId);
 
-        return Boolean.TRUE.equals(webClient.get()
-                .uri("/api/events/{eventId}/exists", eventId)
+        // Получение события
+        return webClient.get()
+                .uri("/api/events/{eventId}", eventId)
                 .headers(headers -> headers.setBearerAuth(token))
                 .retrieve()
-                .bodyToMono(Boolean.class)
-                .doOnNext(result -> logger.info("event-service responded: {}", result))
+                .bodyToMono(EventDto.class)  // Предполагаем, что возвращаемый объект — EventDto
+                .doOnNext(event -> logger.info("event-service responded: {}", event))
                 .onErrorResume(e -> {
-                    logger.error("Failed to get event exists status", e);
-                    return Mono.just(false);
+                    logger.error("Failed to get event", e);
+                    return Mono.empty();  // Возвращаем пустое значение в случае ошибки
                 })
-                .block());
+                .blockOptional()  // Возвращает Optional<EventDto>
+                .orElseThrow(() -> new IllegalArgumentException("Event not found for eventId: " + eventId));
     }
 }

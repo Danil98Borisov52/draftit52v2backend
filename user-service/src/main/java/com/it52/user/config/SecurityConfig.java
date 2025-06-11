@@ -44,11 +44,14 @@ public class SecurityConfig {
                 );
 
         return http.build();*/
-                http
+        http
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo

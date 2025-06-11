@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.apache.commons.lang.StringUtils.isNumeric;
+
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -45,10 +47,19 @@ public class EventController {
         return eventService.getPublicEvents(pageable, kind, status);
     }
 
-    @GetMapping("/{slug}")
-    public ResponseEntity<EventResponseDto> getEventBySlug(@PathVariable String slug) {
-        return ResponseEntity.ok(eventService.getEvent(slug));
+    @GetMapping("/{param}")
+    public ResponseEntity<EventResponseDto> getEventBySlug(@PathVariable String param) {
+        if (isNumeric(param)) {
+            return ResponseEntity.ok(eventService.getEventById(Long.parseLong(param)));
+        } else {
+
+            return ResponseEntity.ok(eventService.getEvent(param));
+        }
     }
+/*    @GetMapping("/{id}")
+    public ResponseEntity<EventResponseDto> getEventBySlug(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
+    }*/
 
     @GetMapping("/moderation")
     public List<Event> getPending() {
@@ -65,12 +76,6 @@ public class EventController {
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> checkUserExists(@PathVariable Long id) {
-        boolean exists = eventService.existsById(id);
-        return ResponseEntity.ok(exists);
     }
 }
 

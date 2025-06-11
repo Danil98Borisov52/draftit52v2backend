@@ -2,6 +2,10 @@ package com.it52.eventregistrationservice.service;
 
 import com.it52.eventregistrationservice.client.EventServiceClient;
 import com.it52.eventregistrationservice.client.UserServiceClient;
+import com.it52.eventregistrationservice.dto.EventDto;
+import com.it52.eventregistrationservice.dto.UserDTO;
+import com.it52.eventregistrationservice.dto.UserRegisteredToEventDto;
+import com.it52.eventregistrationservice.kafka.KafkaProducer;
 import com.it52.eventregistrationservice.model.EventParticipation;
 import com.it52.eventregistrationservice.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
@@ -21,12 +25,18 @@ public class EventParticipationService {
     @Autowired
     private final EventServiceClient eventServiceClient;
 
+    @Autowired
+    private final KafkaProducer kafkaProducer;
+
     public EventParticipationService(EventParticipationRepository repository,
                                      UserServiceClient userServiceClient,
-                                     EventServiceClient eventServiceClient) {
+                                     EventServiceClient eventServiceClient,
+                                     KafkaProducer kafkaProducer) {
         this.repository = repository;
         this.userServiceClient = userServiceClient;
         this.eventServiceClient = eventServiceClient;
+        this.kafkaProducer = kafkaProducer;
+
     }
 
     @Transactional
@@ -37,11 +47,13 @@ public class EventParticipationService {
             String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
             String sub = ((JwtAuthenticationToken) authentication).getToken().getSubject();
 
-            if (!userServiceClient.exists(token, sub)) {
+            var user = userServiceClient.getBySub(token, sub);
+            if (user == null) {
                 throw new IllegalArgumentException("User does not exist");
             }
 
-            if (!eventServiceClient.exists(token, eventId)) {
+            var event = eventServiceClient.getEventById(token, eventId);
+            if (event == null) {
                 throw new IllegalArgumentException("Event does not exist");
             }
 
@@ -50,7 +62,18 @@ public class EventParticipationService {
             }
 
             EventParticipation participation = new EventParticipation(sub, eventId);
+
+            UserRegisteredToEventDto dto = new UserRegisteredToEventDto();
+            dto.setEmail(user.getEmail());
+            dto.setUsername(user.getUsername());
+            dto.setFirstName(user.getFirstName());
+            dto.setEventTitle(event.getTitle());
+            dto.setEventDate(event.getStartedAt());
+            dto.setEventPlace(event.getPlace());
+
+            kafkaProducer.sendUserRegisteredToEvent(dto);
             return repository.save(participation);
+
         } else {
             throw new IllegalStateException("No JWT authentication found in context");
         }

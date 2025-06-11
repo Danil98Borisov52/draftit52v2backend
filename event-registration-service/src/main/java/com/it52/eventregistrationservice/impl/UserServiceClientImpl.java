@@ -2,6 +2,7 @@ package com.it52.eventregistrationservice.impl;
 
 import com.it52.eventregistrationservice.client.UserServiceClient;
 
+import com.it52.eventregistrationservice.dto.UserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,18 +23,21 @@ public class UserServiceClientImpl implements UserServiceClient {
     }
 
     @Override
-    public boolean exists(String token, String sub) {
+    public UserDTO getBySub(String token, String sub) {
         logger.info("Sending request to user-service for userId: {}", sub);
-        return Boolean.TRUE.equals(webClient.get()
-                .uri("/api/users/{sub}/exists", sub)
+
+        // Получение пользователя, если он существует
+        return webClient.get()
+                .uri("/api/users/profile/{sub}", sub)
                 .headers(headers -> headers.setBearerAuth(token))
                 .retrieve()
-                .bodyToMono(Boolean.class)
-                .doOnNext(result -> logger.info("user-service responded: {}", result))
+                .bodyToMono(UserDTO.class)  // Предполагается, что объект пользователя будет в ответе
+                .doOnNext(user -> logger.info("user-service responded: {}", user))
                 .onErrorResume(e -> {
-                    logger.error("Failed to get event exists status", e);
-                    return Mono.just(false);
+                    logger.error("Failed to get user", e);
+                    return Mono.empty(); // Возвращаем пустое значение в случае ошибки
                 })
-                .block());
+                .blockOptional()  // Возвращает Optional<User>, если пользователь не найден, это будет пустое значение
+                .orElseThrow(() -> new IllegalArgumentException("User not found for sub: " + sub));
     }
 }

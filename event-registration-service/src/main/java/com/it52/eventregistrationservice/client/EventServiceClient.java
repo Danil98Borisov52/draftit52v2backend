@@ -1,5 +1,7 @@
 package com.it52.eventregistrationservice.client;
 
+import com.it52.eventregistrationservice.dto.EventDto;
+
 public interface EventServiceClient {
-    boolean exists(String token, Long eventId);
+     EventDto getEventById(String token, Long eventId);
 }

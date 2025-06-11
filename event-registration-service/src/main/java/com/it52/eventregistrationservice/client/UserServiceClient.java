@@ -1,6 +1,8 @@
 package com.it52.eventregistrationservice.client;
 
+import com.it52.eventregistrationservice.dto.UserDTO;
+
 public interface UserServiceClient {
-    boolean exists(String token, String sub);
+    UserDTO getBySub(String token, String sub);
 
 }

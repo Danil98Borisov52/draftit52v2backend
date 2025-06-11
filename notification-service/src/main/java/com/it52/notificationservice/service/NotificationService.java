@@ -3,6 +3,7 @@ package com.it52.notificationservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.notificationservice.dto.EventDto;
 import com.it52.notificationservice.dto.UserDto;
+import com.it52.notificationservice.dto.UserRegisteredToEventDto;
 import com.it52.notificationservice.util.MailService;
 import freemarker.template.Template;
 import org.slf4j.Logger;
@@ -97,6 +98,34 @@ public class NotificationService {
 
         } catch (Exception e) {
             logger.error("Failed to process user registration event or send email: {}", e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(topics = "user_registered_to_event", groupId = "notification-group")
+    public void listenUserRegisteredToEvent(String message) {
+        try {
+            UserRegisteredToEventDto dto = objectMapper.readValue(message, UserRegisteredToEventDto.class);
+
+            String subject = "Вы зарегистрированы на мероприятие: " + dto.getEventTitle();
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("firstName", dto.getFirstName());
+            model.put("username", dto.getUsername());
+            model.put("eventTitle", dto.getEventTitle());
+            model.put("eventDate", formatDate(dto.getEventDate()));
+            model.put("eventPlace", dto.getEventPlace());
+
+            Template template = freemarkerConfig.getTemplate("user_registered_to_event.ftl");
+            StringWriter stringWriter = new StringWriter();
+            template.process(model, stringWriter);
+            String htmlBody = stringWriter.toString();
+
+            logger.info("Sending event registration email to {} for event {}", dto.getEmail(), dto.getEventTitle());
+            mailService.sendHtmlEmail(dto.getEmail(), subject, htmlBody);
+            logger.info("Event registration email sent successfully");
+
+        } catch (Exception e) {
+            logger.error("Failed to process user event registration or send email: {}", e.getMessage(), e);
         }
     }
 
