@@ -1,12 +1,10 @@
 package com.it52.user.config;
 
 
-import com.it52.user.controller.CustomAuthenticationSuccessHandler;
+import com.it52.user.security.CustomAuthenticationSuccessHandler;
 import com.it52.user.repository.UserRepository;
 import com.it52.user.security.CustomOAuth2UserService;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,20 +32,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthenticationSuccessHandler successHandler) throws Exception {
-/*        http
-                .csrf().disable()
-                .authorizeHttpRequests(authz -> authz
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                );
-
-        return http.build();*/
         http
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/error").permitAll()
+                        //.requestMatchers("/error", "/login", "/register", "/profile/**").permitAll()  // Добавь публичные пути
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -87,11 +75,4 @@ public class SecurityConfig {
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService() {
         return new CustomOAuth2UserService(userRepository);
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-
 }

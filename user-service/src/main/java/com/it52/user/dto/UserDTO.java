@@ -1,6 +1,6 @@
 package com.it52.user.dto;
 
-import com.it52.user.domain.model.User;
+import com.it52.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,22 +26,4 @@ public class UserDTO {
     private String website;
     private Boolean subscription;
     private String employment;
-
-    public static UserDTO from(User user) {
-        return new UserDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getSub(),
-                user.getUsername(),
-                user.getRole(),
-                user.getBio(),
-                user.getAvatarImage(),
-                user.getSlug(),
-                user.getWebsite(),
-                user.getSubscription(),
-                user.getEmployment()
-        );
-    }
 }

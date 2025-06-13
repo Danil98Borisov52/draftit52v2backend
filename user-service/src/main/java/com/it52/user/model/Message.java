@@ -1,4 +1,4 @@
-package com.it52.user.domain.model;
+package com.it52.user.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;

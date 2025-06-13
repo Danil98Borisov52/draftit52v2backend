@@ -1,8 +1,6 @@
 package com.it52.user.kafka;
 
-import com.it52.user.domain.model.User;
-import com.it52.user.dto.UserDTO;
-import lombok.RequiredArgsConstructor;
+import com.it52.user.model.User;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 

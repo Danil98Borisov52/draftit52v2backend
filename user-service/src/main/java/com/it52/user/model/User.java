@@ -1,4 +1,4 @@
-package com.it52.user.domain.model;
+package com.it52.user.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,4 +58,15 @@ public class User {
 
     @Column(name = "employment")
     private String employment;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
