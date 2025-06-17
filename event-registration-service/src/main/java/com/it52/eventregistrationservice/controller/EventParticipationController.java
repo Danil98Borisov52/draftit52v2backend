@@ -27,7 +27,8 @@ public class EventParticipationController {
         var response = new EventParticipationResponse(
                 participation.getId(),
                 participation.getSub(),
-                participation.getEventId());
+                participation.getEventId(),
+                participation.getAvatarImage());
 
         return ResponseEntity.ok(response);
     }

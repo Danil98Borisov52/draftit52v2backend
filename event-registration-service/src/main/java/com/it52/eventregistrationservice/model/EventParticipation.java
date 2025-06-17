@@ -32,9 +32,17 @@ public class EventParticipation {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name ="avatarImage")
+    private String avatarImage;
+
     public EventParticipation(String sub, Long eventId) {
         this.sub = sub;
         this.eventId = eventId;
+    }
+    public EventParticipation(String sub, Long eventId, String avatarImage) {
+        this.sub = sub;
+        this.eventId = eventId;
+        this.avatarImage = avatarImage;
     }
 
     @PrePersist

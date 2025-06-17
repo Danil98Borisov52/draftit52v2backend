@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class EventParticipationService {
 
@@ -61,15 +63,19 @@ public class EventParticipationService {
                 throw new IllegalStateException("User already registered for this event");
             }
 
-            EventParticipation participation = new EventParticipation(sub, eventId);
+            EventParticipation participation = new EventParticipation(sub, eventId, user.getAvatarImage());
 
             UserRegisteredToEventDto dto = new UserRegisteredToEventDto();
+            dto.setSub(sub);
+            dto.setEventId(eventId);
             dto.setEmail(user.getEmail());
             dto.setUsername(user.getUsername());
             dto.setFirstName(user.getFirstName());
+            dto.setAvatarImage(user.getAvatarImage());
             dto.setEventTitle(event.getTitle());
             dto.setEventDate(event.getStartedAt());
             dto.setEventPlace(event.getPlace());
+            dto.setRegisteredAt(LocalDateTime.now());
 
             kafkaProducer.sendUserRegisteredToEvent(dto);
             return repository.save(participation);

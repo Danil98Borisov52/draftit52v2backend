@@ -10,10 +10,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
 public class EventCreateDto {
 
@@ -31,8 +27,6 @@ public class EventCreateDto {
 
     @NotBlank(message = "Адрес обязателен")
     private String place;
-
-    private String slug;
 
     @Pattern(regexp = "(^$)|(https?://.+)", message = "Некорректный внешний URL")
     private String foreignLink;

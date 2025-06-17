@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -34,4 +35,9 @@ public class Tagging {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDate createAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createAt = LocalDate.now();
+    }
 }

@@ -77,4 +77,14 @@ public class Event {
     @JoinColumn(name = "taggable_id", referencedColumnName = "id")
     private List<Tagging> taggings;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

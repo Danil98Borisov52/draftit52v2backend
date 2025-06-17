@@ -21,10 +21,10 @@ public class SecurityConfig {
                             try {
                                 authz
                                         //.requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
-                                        //.requestMatchers("/api/events/new").permitAll()
-                                        .anyRequest().authenticated()
-                                        .and()
-                                        .exceptionHandling().accessDeniedHandler(accessDeniedHandler());
+                                        .requestMatchers("/api/events/**").permitAll()
+                                        .anyRequest().authenticated();
+                                        //.and()
+                                        //.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -36,8 +36,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler(){
-        return new CustomAccessDeniedHandler();
-    }
 }

@@ -2,10 +2,12 @@ package com.it52.eventservice.mapper;
 
 import com.it52.eventservice.dto.EventCreateDto;
 import com.it52.eventservice.dto.EventResponseDto;
+import com.it52.eventservice.dto.ParticipantDto;
 import com.it52.eventservice.model.Event;
 import com.it52.eventservice.enums.EventKind;
 import com.it52.eventservice.enums.EventPriceType;
 import com.it52.eventservice.enums.EventStatus;
+import com.it52.eventservice.model.EventParticipant;
 import com.it52.eventservice.util.EnumConverter;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +37,9 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventResponseDto toDto(Event event, List<String> tags, String authorName) {
+    public static EventResponseDto toDto(Event event, List<String> tags, String authorName, List<EventParticipant> eventParticipants) {
 
         return EventResponseDto.builder()
-                //.id(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .place(event.getPlace())
@@ -55,9 +56,9 @@ public class EventMapper {
                 .startedAt(event.getStartedAt())
                 .titleImage(event.getTitleImage())
                 .slug(createSlug(event.getStartedAt(), event.getTitle()))
-                //.createdAt(event.getCreatedAt())
                 .address("MY HOME")
                 .addressComment(event.getAddressComment())
+                .participants(eventParticipants)
                 .build();
     }
 

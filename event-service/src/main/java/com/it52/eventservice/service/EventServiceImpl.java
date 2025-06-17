@@ -1,7 +1,9 @@
 package com.it52.eventservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.eventservice.dto.EventCreateDto;
 import com.it52.eventservice.dto.EventResponseDto;
+import com.it52.eventservice.dto.ParticipantDto;
 import com.it52.eventservice.mapper.EventMapper;
 import com.it52.eventservice.model.*;
 import com.it52.eventservice.repository.*;
@@ -12,17 +14,16 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 
+import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.it52.eventservice.mapper.EventMapper.toDto;
@@ -37,17 +38,23 @@ public class EventServiceImpl implements EventService {
     private final AuthorRepository authorRepository;
     private final EventMapper eventMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final ParticipantRepository participantRepository;
+    private final ObjectMapper objectMapper;
 
     public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper,
                             KafkaTemplate<String, Object> kafkaTemplate,
                             TaggingRepository taggingRepository, TagRepository tagRepository,
-                            AuthorRepository authorRepository) {
+                            AuthorRepository authorRepository,
+                            ParticipantRepository participantRepository,
+                            ObjectMapper objectMapper) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
         this.kafkaTemplate = kafkaTemplate;
         this.taggingRepository = taggingRepository;
         this.tagRepository = tagRepository;
         this.authorRepository = authorRepository;
+        this.participantRepository = participantRepository;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -105,13 +112,14 @@ public class EventServiceImpl implements EventService {
                 savedTagNames.add(tag.getName());
             }
         }
-        EventResponseDto eventResponseDto = eventMapper.toDto(saved, tagNames, authorName);
+        EventResponseDto eventResponseDto = eventMapper.toDto(saved, tagNames, authorName, null);
         kafkaTemplate.send("event_created", eventResponseDto);
         return eventResponseDto;
     }
 
     @Override
     public Page<EventResponseDto> getPublicEvents(Pageable pageable, String kind, String status) {
+
         EventKind eventKind = Arrays.stream(EventKind.values())
                 .filter(type -> type.name().equalsIgnoreCase(kind))
                 .findFirst()
@@ -119,9 +127,12 @@ public class EventServiceImpl implements EventService {
 
         Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
         return getEventByStatus(status, kindInt, pageable)
-                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event)));
+                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId())));
     }
 
+    private List<EventParticipant> getParticipant(Long eventId){
+        return participantRepository.findAllByEventId(eventId);
+    }
     private List<String> getTagsByEvent(Event event) {
         return event.getTaggings().stream()
                 .map(Tagging::getTag)
@@ -163,15 +174,35 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @KafkaListener(topics = "user_registered_to_event", groupId = "event-group")
+    public void listenUserRegisteredToEvent(String message) {
+        try {
+            ParticipantDto participantDto = objectMapper.readValue(message, ParticipantDto.class);
+            logger.info("Получено событие: {}", message);
+
+            EventParticipant participant = new EventParticipant();
+            participant.setEventId(participantDto.getEventId());
+            participant.setSub(participantDto.getSub());
+            participant.setRegisteredAt(participantDto.getRegisteredAt());
+            participant.setAvatarImage(participantDto.getAvatarImage());
+
+            participantRepository.save(participant);
+            logger.info("Участник сохранён: {}", participant);
+        } catch (Exception e) {
+            logger.error("Ошибка обработки Kafka-сообщения: {}", message, e);
+        }
+    }
+
+    @Override
     public EventResponseDto getEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
-        return toDto(event, getTagsByEvent(event), getAuthorName(event));
+        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId()));
     }
 
     @Override
     public EventResponseDto getEventById(Long id){
         Event event = eventRepository.findById(id).get();
-        return toDto(event, getTagsByEvent(event), getAuthorName(event));
+        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(id));
     }
 
     @Override
@@ -180,15 +211,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void approveEvent(Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+    public void approveEvent(String slug) {
+        Event event = eventRepository.findBySlug(slug);
         event.setPublished(true);
         eventRepository.save(event);
     }
 
     @Override
-    public void deleteEvent(Long id) {
-        eventRepository.deleteById(id);
+    public void deleteEvent(String slug) {
+        eventRepository.deleteBySlug(slug);
     }
 }

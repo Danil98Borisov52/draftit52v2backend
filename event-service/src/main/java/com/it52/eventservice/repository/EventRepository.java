@@ -2,7 +2,6 @@ package com.it52.eventservice.repository;
 
 import com.it52.eventservice.model.Event;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.domain.Pageable;
@@ -28,4 +27,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Page<Event> findByPublishedTrueAndKindAndStartedAtBefore(Integer kind, LocalDateTime now, Pageable pageable);
 
     Page<Event> findByPublishedTrueAndKind(Integer kind, Pageable pageable);
+
+    void deleteBySlug(String slug);
 }

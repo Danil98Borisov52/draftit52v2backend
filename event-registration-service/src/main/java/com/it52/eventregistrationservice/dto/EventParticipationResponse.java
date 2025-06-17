@@ -13,4 +13,5 @@ public class EventParticipationResponse {
     private Long id;
     private String sub;
     private Long eventId;
+    private String avatarImage;
 }

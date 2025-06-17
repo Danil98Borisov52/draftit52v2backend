@@ -56,25 +56,21 @@ public class EventController {
             return ResponseEntity.ok(eventService.getEvent(param));
         }
     }
-/*    @GetMapping("/{id}")
-    public ResponseEntity<EventResponseDto> getEventBySlug(@PathVariable Long id) {
-        return ResponseEntity.ok(eventService.getEventById(id));
-    }*/
 
     @GetMapping("/moderation")
     public List<Event> getPending() {
         return eventService.getPendingApproval();
     }
 
-    @PutMapping("/{id}/approve")
-    public void approve(@PathVariable Long id) {
-        eventService.approveEvent(id);
+    @PutMapping("/{slug}/approve")
+    public void approve(@PathVariable String slug) {
+        eventService.approveEvent(slug);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{slug}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
+    public ResponseEntity<Void> deleteEvent(@PathVariable String slug) {
+        eventService.deleteEvent(slug);
         return ResponseEntity.noContent().build();
     }
 }
