@@ -126,7 +126,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new IllegalArgumentException("Некорректный параметр kind: " + kind));
 
         Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
-        return getEventByStatus(status, kindInt, pageable)
+        return getEventByStatus(status, kindInt, pageable, true)
                 .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId())));
     }
 
@@ -154,22 +154,29 @@ public class EventServiceImpl implements EventService {
         return author.getAuthorName();
     }
 
-    private Page<Event> getEventByStatus(String status, Integer kindInt, Pageable pageable) {
+    private Page<Event> getEventByStatus(String status, Integer kindInt, Pageable pageable, boolean published) {
         LocalDateTime now = LocalDateTime.now();
         EventStatus eventStatus = EventStatus.valueOf(status.toUpperCase());
-        switch (eventStatus) {
-            case FUTURE:
-                return kindInt != null
-                        ? eventRepository.findByPublishedTrueAndKindAndStartedAtAfter(kindInt, now, pageable)
-                        : eventRepository.findByPublishedTrueAndStartedAtAfter(now, pageable);
-            case PAST:
-                return kindInt != null
-                        ? eventRepository.findByPublishedTrueAndKindAndStartedAtBefore(kindInt, now, pageable)
-                        : eventRepository.findByPublishedTrueAndStartedAtBefore(now, pageable);
-            default:
-                return kindInt != null
-                        ? eventRepository.findByPublishedTrueAndKind(kindInt, pageable)
-                        : eventRepository.findByPublishedTrue(pageable);
+
+        boolean isFuture = eventStatus == EventStatus.FUTURE;
+        boolean isPast = eventStatus == EventStatus.PAST;
+
+        if (kindInt != null) {
+            if (isFuture) {
+                return eventRepository.findByPublishedAndKindAndStartedAtAfter(published, kindInt, now, pageable);
+            } else if (isPast) {
+                return eventRepository.findByPublishedAndKindAndStartedAtBefore(published, kindInt, now, pageable);
+            } else {
+                return eventRepository.findByPublishedAndKind(published, kindInt, pageable);
+            }
+        } else {
+            if (isFuture) {
+                return eventRepository.findByPublishedAndStartedAtAfter(published, now, pageable);
+            } else if (isPast) {
+                return eventRepository.findByPublishedAndStartedAtBefore(published, now, pageable);
+            } else {
+                return eventRepository.findByPublished(published, pageable);
+            }
         }
     }
 
@@ -206,8 +213,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> getPendingApproval() {
-        return eventRepository.findByPublishedFalse();
+    public Page<EventResponseDto> getPendingApproval(Pageable pageable, String kind, String status) {
+        EventKind eventKind = Arrays.stream(EventKind.values())
+                .filter(type -> type.name().equalsIgnoreCase(kind))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Некорректный параметр kind: " + kind));
+        Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
+        return getEventByStatus(status, kindInt, pageable, false)
+                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId())));
     }
 
     @Override

@@ -58,8 +58,14 @@ public class EventController {
     }
 
     @GetMapping("/moderation")
-    public List<Event> getPending() {
-        return eventService.getPendingApproval();
+    public Page<EventResponseDto> getPending(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String kind,
+            @RequestParam(defaultValue = "future") String status
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return eventService.getPendingApproval(pageable, kind, status);
     }
 
     @PutMapping("/{slug}/approve")
