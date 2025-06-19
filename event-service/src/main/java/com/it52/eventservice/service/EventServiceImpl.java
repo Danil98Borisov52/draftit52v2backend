@@ -10,7 +10,10 @@ import com.it52.eventservice.repository.*;
 import com.it52.eventservice.enums.EventKind;
 import com.it52.eventservice.enums.EventStatus;
 import com.it52.eventservice.util.SecurityUtils;
+import io.minio.MinioClient;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -19,6 +22,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.StringWriter;
 import java.time.LocalDate;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
 import static com.it52.eventservice.mapper.EventMapper.toDto;
 
 @Service
+@RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
     private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
@@ -40,24 +45,8 @@ public class EventServiceImpl implements EventService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ParticipantRepository participantRepository;
     private final ObjectMapper objectMapper;
-
-    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper,
-                            KafkaTemplate<String, Object> kafkaTemplate,
-                            TaggingRepository taggingRepository, TagRepository tagRepository,
-                            AuthorRepository authorRepository,
-                            ParticipantRepository participantRepository,
-                            ObjectMapper objectMapper) {
-        this.eventRepository = eventRepository;
-        this.eventMapper = eventMapper;
-        this.kafkaTemplate = kafkaTemplate;
-        this.taggingRepository = taggingRepository;
-        this.tagRepository = tagRepository;
-        this.authorRepository = authorRepository;
-        this.participantRepository = participantRepository;
-        this.objectMapper = objectMapper;
-    }
-
-
+    private final MinioService minioService;
+    private final MinioClient minioClient;
 
     @Override
     @Transactional
@@ -112,7 +101,75 @@ public class EventServiceImpl implements EventService {
                 savedTagNames.add(tag.getName());
             }
         }
-        EventResponseDto eventResponseDto = eventMapper.toDto(saved, tagNames, authorName, null);
+        EventResponseDto eventResponseDto = eventMapper.toDto(saved, tagNames, authorName, null, minioClient);
+        kafkaTemplate.send("event_created", eventResponseDto);
+        return eventResponseDto;
+    }
+
+    @Override
+    @Transactional
+    public EventResponseDto createEvent(EventCreateDto dto, MultipartFile image) {
+        String sub = SecurityUtils.getCurrentUserId();
+        String authorName = SecurityUtils.getCurrentUsername();
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        Author author = authorRepository.findBySub(sub)
+                .orElseGet(() -> {
+                    Author newAuthor = Author.builder()
+                            .sub(sub)
+                            .authorName(authorName)
+                            .email(email)
+                            .build();
+                    return authorRepository.save(newAuthor);
+                });
+
+        // Создаём Event без картинки
+        Event event = eventMapper.create(dto);
+        event.setAuthor(author);
+        Event saved = eventRepository.save(event); // сохраняем, чтобы получить ID
+
+        // Загружаем картинку, если она есть
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = minioService.uploadFile(image, saved.getId().toString());
+            saved.setTitleImage(imageUrl); // записываем в поле
+            eventRepository.save(saved);   // обновляем
+        }
+
+        // Обработка тегов
+        List<String> tagNames = dto.getTags();
+        List<String> savedTagNames = new ArrayList<>();
+
+        if (tagNames != null && !tagNames.isEmpty()) {
+            for (String tagName : tagNames) {
+                String cleanName = tagName.trim();
+
+                Tag tag = tagRepository.findByName(cleanName)
+                        .orElseGet(() -> {
+                            Tag newTag = Tag.builder()
+                                    .name(cleanName)
+                                    .taggingsCount(0L)
+                                    .build();
+                            return tagRepository.save(newTag);
+                        });
+
+                Tagging tagging = Tagging.builder()
+                        .tag(tag)
+                        .taggableType(dto.getKind())
+                        .taggable(saved)
+                        .context("tags")
+                        .createAt(LocalDate.now())
+                        .build();
+
+                taggingRepository.save(tagging);
+
+                tag.setTaggingsCount(tag.getTaggingsCount() + 1);
+                tagRepository.save(tag);
+
+                savedTagNames.add(tag.getName());
+            }
+        }
+
+        EventResponseDto eventResponseDto = eventMapper.toDto(saved, savedTagNames, authorName, null, minioClient);
         kafkaTemplate.send("event_created", eventResponseDto);
         return eventResponseDto;
     }
@@ -127,7 +184,7 @@ public class EventServiceImpl implements EventService {
 
         Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
         return getEventByStatus(status, kindInt, pageable, true)
-                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId())));
+                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId()), minioClient));
     }
 
     private List<EventParticipant> getParticipant(Long eventId){
@@ -203,13 +260,13 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventResponseDto getEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
-        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId()));
+        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId()), minioClient);
     }
 
     @Override
     public EventResponseDto getEventById(Long id){
         Event event = eventRepository.findById(id).get();
-        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(id));
+        return toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(id), minioClient);
     }
 
     @Override
@@ -220,7 +277,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new IllegalArgumentException("Некорректный параметр kind: " + kind));
         Integer kindInt = (eventKind != EventKind.ALL) ? eventKind.ordinal() : null;
         return getEventByStatus(status, kindInt, pageable, false)
-                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId())));
+                .map(event -> toDto(event, getTagsByEvent(event), getAuthorName(event), getParticipant(event.getId()), minioClient));
     }
 
     @Override

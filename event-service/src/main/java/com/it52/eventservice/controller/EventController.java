@@ -8,11 +8,13 @@ import com.it52.eventservice.service.EventService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,10 +32,19 @@ public class EventController {
         this.eventService = eventService;
     }
 
-    @PostMapping("/new")
+/*    @PostMapping("/new")
     public ResponseEntity<EventResponseDto> create(@RequestBody EventCreateDto eventDto) {
         EventResponseDto event = eventService.createEvent(eventDto);
         return new ResponseEntity<>(event, HttpStatus.CREATED);
+    }*/
+
+    @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<EventResponseDto> create(
+            @RequestPart("event") EventCreateDto eventDto,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+
+        EventResponseDto createdEvent = eventService.createEvent(eventDto, image);
+        return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     @GetMapping("/public")
@@ -52,7 +63,6 @@ public class EventController {
         if (isNumeric(param)) {
             return ResponseEntity.ok(eventService.getEventById(Long.parseLong(param)));
         } else {
-
             return ResponseEntity.ok(eventService.getEvent(param));
         }
     }

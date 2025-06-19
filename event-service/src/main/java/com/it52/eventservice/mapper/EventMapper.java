@@ -9,10 +9,21 @@ import com.it52.eventservice.enums.EventPriceType;
 import com.it52.eventservice.enums.EventStatus;
 import com.it52.eventservice.model.EventParticipant;
 import com.it52.eventservice.util.EnumConverter;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -37,7 +48,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventResponseDto toDto(Event event, List<String> tags, String authorName, List<EventParticipant> eventParticipants) {
+    public static EventResponseDto toDto(Event event, List<String> tags, String authorName, List<EventParticipant> eventParticipants, MinioClient minioClient) {
 
         return EventResponseDto.builder()
                 .title(event.getTitle())
@@ -58,8 +69,44 @@ public class EventMapper {
                 .slug(createSlug(event.getStartedAt(), event.getTitle()))
                 .address("MY HOME")
                 .addressComment(event.getAddressComment())
+                .titleImage(getTitleImage(event.getTitleImage(), minioClient))
                 .participants(eventParticipants)
                 .build();
+    }
+
+    private static String getTitleImage(String titleImage, MinioClient minioClient) {
+        if (titleImage == null || titleImage.isBlank()) {
+            return null;
+        }
+
+        try {
+            String bucket = "event-images";
+            URI uri = URI.create(titleImage);
+            String path = uri.getPath();
+
+            String objectName = path.startsWith("/" + bucket + "/")
+                    ? path.substring(bucket.length() + 2)
+                    : path.substring(1);
+
+            try (InputStream imageStream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectName)
+                            .build())) {
+
+                BufferedImage image = ImageIO.read(imageStream);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpg", baos); // можно заменить на "png", если надо
+                byte[] imageBytes = baos.toByteArray();
+
+                return "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(imageBytes);
+            }
+
+        } catch (Exception e) {
+            // можно логировать, если нужно
+            System.err.println("Ошибка загрузки изображения из MinIO: " + e.getMessage());
+            return null;
+        }
     }
 
     private static String createSlug(LocalDateTime startedAt, String title){

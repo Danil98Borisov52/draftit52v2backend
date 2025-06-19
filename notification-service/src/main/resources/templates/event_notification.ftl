@@ -35,6 +35,14 @@
             margin-bottom: 30px;
         }
 
+        .event-image {
+            display: block;
+            margin: 0 auto 30px auto;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
         table {
             width: 100%;
             border-spacing: 0;
@@ -83,6 +91,11 @@
 <div class="container">
     <h2>🎉 Вас ждет нечто особенное!</h2>
     <div class="subtitle">Новое мероприятие, которое стоит вашего внимания</div>
+
+    <#-- Если есть titleImage, показываем картинку -->
+    <#if titleImageCid?has_content>
+        <img src="cid:${titleImageCid}" alt="Обложка мероприятия" style="max-width:100%; height:auto;"/>
+    </#if>
 
     <table>
         <tr><td class="label">📌 Название:</td><td class="value">${title}</td></tr>

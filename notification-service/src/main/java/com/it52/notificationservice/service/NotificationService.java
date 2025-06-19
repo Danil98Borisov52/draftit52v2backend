@@ -6,6 +6,9 @@ import com.it52.notificationservice.dto.UserDto;
 import com.it52.notificationservice.dto.UserRegisteredToEventDto;
 import com.it52.notificationservice.util.MailService;
 import freemarker.template.Template;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +16,12 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -29,21 +37,27 @@ public class NotificationService {
     private final MailService mailService;
     private final ObjectMapper objectMapper;
     private final freemarker.template.Configuration freemarkerConfig;
+    private final MinioClient minioClient;
+    private final String bucket;
 
-    public NotificationService(MailService mailService, ObjectMapper objectMapper, freemarker.template.Configuration freemarkerConfig) {
+    public NotificationService(MailService mailService,
+                               ObjectMapper objectMapper,
+                               freemarker.template.Configuration freemarkerConfig,
+                               MinioClient minioClient,
+                               @Value("${minio.bucket}") String bucket) {
         this.mailService = mailService;
         this.objectMapper = objectMapper;
         this.freemarkerConfig = freemarkerConfig;
+        this.minioClient = minioClient;
+        this.bucket = bucket;
     }
 
     @KafkaListener(topics = "event_created", groupId = "notification-group")
     public void listen(String eventJson) {
         try {
-
             EventDto event = objectMapper.readValue(eventJson, EventDto.class);
             String subject = "Новое мероприятие: " + event.getTitle();
 
-            // Подготовка модели для шаблона
             Map<String, Object> model = new HashMap<>();
             model.put("title", event.getTitle());
             model.put("description", event.getDescription());
@@ -56,17 +70,48 @@ public class NotificationService {
             model.put("status", event.getStatus());
             model.put("externalUrl", event.getExternalUrl());
             model.put("tags", event.getTags());
+            model.put("titleImage", "eventBanner");
 
-            // Загрузка и обработка шаблона
-            Template template = freemarkerConfig.getTemplate("event_notification.ftl");
-            StringWriter stringWriter = new StringWriter();
-            template.process(model, stringWriter);
-            String htmlBody = stringWriter.toString();
+            String fullUrl = event.getTitleImage();
 
-            // Отправка письма с HTML
-            logger.info("Sending email to Danil1998borisov1@yandex.ru with subject: {}", subject);
-            mailService.sendHtmlEmail("Danil1998borisov1@yandex.ru", subject, htmlBody);
-            logger.info("Email sent successfully");
+            URI uri = URI.create(fullUrl);
+            String path = uri.getPath();
+
+            String objectName = path.startsWith("/" + bucket + "/")
+                    ? path.substring(bucket.length() + 2)
+                    : path.substring(1);
+
+            System.out.println("Объект в бакете: " + objectName);
+
+            try (InputStream imageStream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectName)
+                            .build())) {
+
+                BufferedImage image = ImageIO.read(imageStream);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpg", baos);
+                byte[] imageBytes = baos.toByteArray();
+
+                Template template = freemarkerConfig.getTemplate("event_notification.ftl");
+                StringWriter stringWriter = new StringWriter();
+                template.process(model, stringWriter);
+                String htmlBody = stringWriter.toString();
+
+                logger.info("Sending email with subject: {}", subject);
+                mailService.sendHtmlEmailWithInlineImage(
+                        "Danil1998borisov1@yandex.ru",
+                        subject,
+                        htmlBody,
+                        imageBytes,
+                        "eventBanner",
+                        "image/jpeg"
+                );
+
+                logger.info("Email sent successfully");
+            }
 
         } catch (Exception e) {
             logger.error("Failed to process event or send email: {}", e.getMessage(), e);
@@ -81,12 +126,10 @@ public class NotificationService {
 
             String subject = "Добро пожаловать на платформу!";
 
-            // Подготовка модели для шаблона welcome_email.ftl
             Map<String, Object> model = new HashMap<>();
             model.put("firstName", user.getFirstName());
             model.put("username", user.getUsername());
 
-            // Загрузка и рендер шаблона
             Template template = freemarkerConfig.getTemplate("welcome_email.ftl");
             StringWriter stringWriter = new StringWriter();
             template.process(model, stringWriter);
