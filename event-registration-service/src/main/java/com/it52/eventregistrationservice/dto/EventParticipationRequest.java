@@ -7,4 +7,5 @@ import java.time.LocalDateTime;
 @Data
 public class EventParticipationRequest {
     private Long eventId;
+    private boolean organizer;
 }

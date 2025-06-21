@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/users")
@@ -40,20 +39,16 @@ public class UserController {
                     try {
                         Object newValue = field.get(userUpdateDTO);
                         if (newValue != null) {
-                            // Получаем сеттер для соответствующего поля в User
                             String setterMethodName = "set" + capitalize(field.getName());
                             Method setterMethod = User.class.getMethod(setterMethodName, field.getType());
                             setterMethod.invoke(existingUser, newValue);
                         }
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                        // Обрабатываем исключения, если метод или поле недоступны
                         e.printStackTrace();
                     }
                 }
-                // Сохраняем изменения
                 userService.saveUser(existingUser);
 
-                // Возвращаем обновленные данные
                 UserDTO userDTO = userMapper.toDto(existingUser);
                 return new ResponseEntity<>(userDTO, HttpStatus.OK);
             } else {
@@ -63,12 +58,6 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Если не аутентифицирован
         }
     }
-
-/*    @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
-        User user = userMapper.toEntity(userRegisterDTO);
-        return new ResponseEntity<>(userService.registerUser(user), HttpStatus.CREATED);
-    }*/
 
     @GetMapping("/profile/{sub}")
     public ResponseEntity<UserDTO> getUser(@PathVariable String sub) {

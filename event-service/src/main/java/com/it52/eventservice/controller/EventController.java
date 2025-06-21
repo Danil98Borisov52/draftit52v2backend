@@ -2,9 +2,9 @@ package com.it52.eventservice.controller;
 
 import com.it52.eventservice.dto.EventCreateDto;
 import com.it52.eventservice.dto.EventResponseDto;
-import com.it52.eventservice.mapper.EventMapper;
-import com.it52.eventservice.model.Event;
-import com.it52.eventservice.service.EventService;
+import com.it52.eventservice.service.api.EventQueryService;
+import com.it52.eventservice.service.api.EventService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -16,27 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
 import static org.apache.commons.lang.StringUtils.isNumeric;
 
 @RestController
 @RequestMapping("/api/events")
+@RequiredArgsConstructor
 public class EventController {
 
     private final EventService eventService;
-
-    public EventController(EventService eventService) {
-        this.eventService = eventService;
-    }
-
-/*    @PostMapping("/new")
-    public ResponseEntity<EventResponseDto> create(@RequestBody EventCreateDto eventDto) {
-        EventResponseDto event = eventService.createEvent(eventDto);
-        return new ResponseEntity<>(event, HttpStatus.CREATED);
-    }*/
+    private final EventQueryService eventQueryService;
 
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<EventResponseDto> create(
@@ -55,7 +43,7 @@ public class EventController {
             @RequestParam(defaultValue = "future") String status
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return eventService.getPublicEvents(pageable, kind, status);
+        return eventQueryService.getPublicEvents(pageable, kind, status);
     }
 
     @GetMapping("/{param}")
@@ -75,7 +63,7 @@ public class EventController {
             @RequestParam(defaultValue = "future") String status
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return eventService.getPendingApproval(pageable, kind, status);
+        return eventQueryService.getPendingApproval(pageable, kind, status);
     }
 
     @PutMapping("/{slug}/approve")

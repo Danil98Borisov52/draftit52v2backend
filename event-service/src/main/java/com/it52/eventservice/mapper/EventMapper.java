@@ -65,7 +65,7 @@ public class EventMapper {
                 .tags(tags)
                 .status(getStatus(event.getStartedAt()))
                 .startedAt(event.getStartedAt())
-                .titleImage(event.getTitleImage())
+                .titleImageURL(event.getTitleImage())
                 .slug(createSlug(event.getStartedAt(), event.getTitle()))
                 .address("MY HOME")
                 .addressComment(event.getAddressComment())

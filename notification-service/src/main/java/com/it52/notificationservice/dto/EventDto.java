@@ -22,6 +22,7 @@ public class EventDto {
     private String description;
     private LocalDateTime startedAt;
     private String titleImage;
+    private String titleImageURL;
     private String place;
     private String address;
     private String authorName;

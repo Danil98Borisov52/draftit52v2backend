@@ -44,6 +44,8 @@ public class EventResponseDto {
 
     private String titleImage;
 
+    private String titleImageURL;
+
     @NotBlank(message = "Slug обязательный")
     private String slug;
 

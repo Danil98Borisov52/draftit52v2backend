@@ -2,47 +2,28 @@ package com.it52.eventregistrationservice.service;
 
 import com.it52.eventregistrationservice.client.EventServiceClient;
 import com.it52.eventregistrationservice.client.UserServiceClient;
-import com.it52.eventregistrationservice.dto.EventDto;
-import com.it52.eventregistrationservice.dto.UserDTO;
 import com.it52.eventregistrationservice.dto.UserRegisteredToEventDto;
 import com.it52.eventregistrationservice.kafka.KafkaProducer;
 import com.it52.eventregistrationservice.model.EventParticipation;
 import com.it52.eventregistrationservice.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
+@RequiredArgsConstructor
 @Service
 public class EventParticipationService {
 
     private final EventParticipationRepository repository;
-
-    @Autowired
     private final UserServiceClient userServiceClient;
-
-    @Autowired
     private final EventServiceClient eventServiceClient;
-
-    @Autowired
     private final KafkaProducer kafkaProducer;
 
-    public EventParticipationService(EventParticipationRepository repository,
-                                     UserServiceClient userServiceClient,
-                                     EventServiceClient eventServiceClient,
-                                     KafkaProducer kafkaProducer) {
-        this.repository = repository;
-        this.userServiceClient = userServiceClient;
-        this.eventServiceClient = eventServiceClient;
-        this.kafkaProducer = kafkaProducer;
-
-    }
-
     @Transactional
-    public EventParticipation register(Long eventId) {
+    public EventParticipation register(Long eventId, boolean organizer) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication instanceof JwtAuthenticationToken) {
@@ -63,13 +44,14 @@ public class EventParticipationService {
                 throw new IllegalStateException("User already registered for this event");
             }
 
-            EventParticipation participation = new EventParticipation(sub, eventId, user.getAvatarImage());
+            EventParticipation participation = new EventParticipation(sub, eventId, user.getAvatarImage(), organizer);
 
             UserRegisteredToEventDto dto = new UserRegisteredToEventDto();
             dto.setSub(sub);
             dto.setEventId(eventId);
             dto.setEmail(user.getEmail());
             dto.setUsername(user.getUsername());
+            dto.setOrganizer(organizer);
             dto.setFirstName(user.getFirstName());
             dto.setAvatarImage(user.getAvatarImage());
             dto.setEventTitle(event.getTitle());

@@ -17,4 +17,5 @@ public class ParticipantDto {
     private LocalDateTime eventDate;
     private String eventPlace;
     private String avatarImage;
+    private boolean organizer;
 }

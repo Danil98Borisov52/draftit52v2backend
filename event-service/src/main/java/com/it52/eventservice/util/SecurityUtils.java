@@ -13,13 +13,6 @@ public class SecurityUtils {
         return jwt.getClaimAsString("sub");
     }
 
-    /*    public static String getCurrentUsername() {
-            JwtAuthenticationToken authentication =
-                    (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-
-            Jwt jwt = authentication.getToken();
-            return jwt.getClaimAsString("preferred_username");
-        }*/
     public static String getCurrentUsername() {
         JwtAuthenticationToken authentication =
                 (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
@@ -28,7 +21,7 @@ public class SecurityUtils {
         String givenName = jwt.getClaimAsString("given_name");
         String familyName = jwt.getClaimAsString("family_name");
 
-        return familyName + " " + givenName; // или givenName + " " + familyName, по желанию
+        return familyName + " " + givenName;
     }
 
     public static String getCurrentUserEmail() {

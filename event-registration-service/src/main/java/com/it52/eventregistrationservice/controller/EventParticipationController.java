@@ -21,15 +21,14 @@ public class EventParticipationController {
     }
 
     @PostMapping
-    public ResponseEntity<EventParticipationResponse> register(@RequestBody EventParticipationRequest request) {
-        var participation = participationService.register(request.getEventId());
+    public EventParticipationResponse register(@RequestBody EventParticipationRequest request) {
+        var participation = participationService.register(request.getEventId(), request.isOrganizer());
 
-        var response = new EventParticipationResponse(
+        return new EventParticipationResponse(
                 participation.getId(),
                 participation.getSub(),
                 participation.getEventId(),
-                participation.getAvatarImage());
-
-        return ResponseEntity.ok(response);
+                participation.getAvatarImage(),
+                participation.isOrganizer());
     }
 }

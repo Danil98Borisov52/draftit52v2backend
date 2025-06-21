@@ -72,7 +72,7 @@ public class NotificationService {
             model.put("tags", event.getTags());
             model.put("titleImage", "eventBanner");
 
-            String fullUrl = event.getTitleImage();
+            String fullUrl = event.getTitleImageURL();
 
             URI uri = URI.create(fullUrl);
             String path = uri.getPath();
@@ -158,7 +158,11 @@ public class NotificationService {
             model.put("eventDate", formatDate(dto.getEventDate()));
             model.put("eventPlace", dto.getEventPlace());
 
-            Template template = freemarkerConfig.getTemplate("user_registered_to_event.ftl");
+            String templateName = dto.isOrganizer()
+                    ? "organizer_registered_to_event.ftl"
+                    : "user_registered_to_event.ftl";
+
+            Template template = freemarkerConfig.getTemplate(templateName);
             StringWriter stringWriter = new StringWriter();
             template.process(model, stringWriter);
             String htmlBody = stringWriter.toString();

@@ -35,14 +35,18 @@ public class EventParticipation {
     @Column(name ="avatarImage")
     private String avatarImage;
 
+    @Column(name = "organizer")
+    private boolean organizer;
+
     public EventParticipation(String sub, Long eventId) {
         this.sub = sub;
         this.eventId = eventId;
     }
-    public EventParticipation(String sub, Long eventId, String avatarImage) {
+    public EventParticipation(String sub, Long eventId, String avatarImage, boolean organizer) {
         this.sub = sub;
         this.eventId = eventId;
         this.avatarImage = avatarImage;
+        this.organizer = organizer;
     }
 
     @PrePersist

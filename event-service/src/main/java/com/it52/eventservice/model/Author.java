@@ -23,4 +23,7 @@ public class Author {
 
     @Column(name = "sub")
     private String sub;
+
+    @Column(name ="avatar")
+    private String avatar;
 }

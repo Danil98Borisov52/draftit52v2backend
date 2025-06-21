@@ -1,6 +1,7 @@
-package com.it52.eventservice.service;
+package com.it52.eventservice.service.impl;
 
 import com.it52.eventservice.config.MinioConfig;
+import com.it52.eventservice.service.api.MinioService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +12,12 @@ import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
-public class MinioService {
+public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
     private final MinioConfig minioConfig;
 
+    @Override
     public String uploadFile(MultipartFile file, String eventId) {
         try {
             String fileName = eventId + "_" + file.getOriginalFilename();

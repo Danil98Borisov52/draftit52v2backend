@@ -1,7 +1,6 @@
-package com.it52.user.dto;
+package com.it52.eventservice.dto;
 
-import com.it52.user.model.User;
-import lombok.*;
+import lombok.Data;
 
 @Data
 public class UserDTO {

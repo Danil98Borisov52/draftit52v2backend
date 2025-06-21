@@ -1,18 +1,15 @@
-package com.it52.eventregistrationservice.dto;
+package com.it52.eventservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class EventParticipationResponse {
     private Long id;
     private String sub;
     private Long eventId;
     private String avatarImage;
-    private boolean organizer;
 }

@@ -2,7 +2,7 @@ package com.it52.eventservice.controller;
 
 import com.it52.eventservice.model.Event;
 import com.it52.eventservice.repository.EventRepository;
-import com.it52.eventservice.service.MinioService;
+import com.it52.eventservice.service.api.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
