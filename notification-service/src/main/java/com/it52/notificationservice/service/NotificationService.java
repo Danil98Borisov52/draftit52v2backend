@@ -70,7 +70,7 @@ public class NotificationService {
             model.put("status", event.getStatus());
             model.put("externalUrl", event.getExternalUrl());
             model.put("tags", event.getTags());
-            model.put("titleImage", "eventBanner");
+            model.put("titleImageCid", "eventBanner");
 
             String fullUrl = event.getTitleImageURL();
 
