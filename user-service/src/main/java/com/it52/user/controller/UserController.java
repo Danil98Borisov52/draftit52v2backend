@@ -3,10 +3,11 @@ package com.it52.user.controller;
 import com.it52.user.dto.UserDTO;
 import com.it52.user.dto.UserUpdateDTO;
 import com.it52.user.model.User;
-import com.it52.user.service.UserService;
+import com.it52.user.service.api.UserService;
 import com.it52.user.utils.SecurityUtils;
+import com.it52.user.utils.UserMapper;
 import org.springframework.http.ResponseEntity;
-import com.it52.user.util.UserMapper;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

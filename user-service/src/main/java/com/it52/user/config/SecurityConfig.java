@@ -38,14 +38,14 @@ public class SecurityConfig {
                         //.requestMatchers("/error", "/login", "/register", "/profile/**").permitAll()  // Добавь публичные пути
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+/*                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oAuth2UserService())
+                        )*/
+                        .successHandler(successHandler)
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oAuth2UserService())
-                        )
-                        .successHandler(successHandler)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/users/logout")

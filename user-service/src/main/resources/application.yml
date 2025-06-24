@@ -9,6 +9,18 @@ eureka:
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
 
+minio:
+  url: http://minio:9000
+  access-key: minio
+  secret-key: minio123
+  bucket: user-avatars
+
+keycloak:
+  auth-server-url: http://keycloak:8080
+  realm: it52
+  client-id: it52-client
+  client-secret: vHgP94O0lsGldQHfcHreP02y4X0PsRKQ
+
 spring:
   application:
     name: user-service
