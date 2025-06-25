@@ -1,8 +1,6 @@
 package com.it52.user.service.impl;
 
-import com.it52.user.dto.UserDTO;
 import com.it52.user.dto.UserUpdateDTO;
-import com.it52.user.exception.UserAlreadyExistsException;
 import com.it52.user.exception.UserNotFoundException;
 import com.it52.user.kafka.KafkaProducer;
 import com.it52.user.model.User;
@@ -29,9 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -174,7 +170,6 @@ public class UserServiceImpl implements UserService {
             }
         }
     }
-
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {
             return str;

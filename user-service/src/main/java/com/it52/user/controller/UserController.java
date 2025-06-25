@@ -3,6 +3,7 @@ package com.it52.user.controller;
 import com.it52.user.dto.UserDTO;
 import com.it52.user.dto.UserUpdateDTO;
 import com.it52.user.model.User;
+import com.it52.user.service.api.EventRegistrationServiceClient;
 import com.it52.user.service.api.UserService;
 import com.it52.user.utils.SecurityUtils;
 import com.it52.user.utils.UserMapper;
@@ -21,10 +22,12 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final EventRegistrationServiceClient eventRegistrationServiceClient;
 
-    public UserController(UserService userService, UserMapper userMapper) {
+    public UserController(UserService userService, UserMapper userMapper, EventRegistrationServiceClient eventRegistrationServiceClient) {
         this.userService = userService;
         this.userMapper = userMapper;
+        this.eventRegistrationServiceClient = eventRegistrationServiceClient;
     }
 
     @PutMapping("/edit")
@@ -65,6 +68,7 @@ public class UserController {
         User user = userService.getUserBySub(sub);
         if (user != null) {
             UserDTO userDTO = userMapper.toDto(user);
+            userDTO.setUserEventParticipation(eventRegistrationServiceClient.getUserEvents(user.getSub()));
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -78,6 +82,7 @@ public class UserController {
             User user = userService.getUserBySub(userSub);
             if (user != null) {
                 UserDTO userDTO = userMapper.toDto(user);
+                userDTO.setUserEventParticipation(eventRegistrationServiceClient.getUserEvents(user.getSub()));
                 return new ResponseEntity<>(userDTO, HttpStatus.OK);
             }
         }

@@ -27,6 +27,9 @@ public class EventParticipant {
     @Column(name = "event_id")
     private Long eventId;
 
+    @Column(name ="slug")
+    private String slug;
+
     @Column(name = "registered_at")
     private LocalDateTime registeredAt;
 

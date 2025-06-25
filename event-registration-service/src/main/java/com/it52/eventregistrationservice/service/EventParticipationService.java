@@ -2,6 +2,8 @@ package com.it52.eventregistrationservice.service;
 
 import com.it52.eventregistrationservice.client.EventServiceClient;
 import com.it52.eventregistrationservice.client.UserServiceClient;
+import com.it52.eventregistrationservice.dto.EventParticipationResponse;
+import com.it52.eventregistrationservice.dto.UserEventsResponse;
 import com.it52.eventregistrationservice.dto.UserRegisteredToEventDto;
 import com.it52.eventregistrationservice.kafka.KafkaProducer;
 import com.it52.eventregistrationservice.model.EventParticipation;
@@ -13,6 +15,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 @Service
 public class EventParticipationService {
@@ -44,11 +49,20 @@ public class EventParticipationService {
                 throw new IllegalStateException("User already registered for this event");
             }
 
-            EventParticipation participation = new EventParticipation(sub, eventId, user.getAvatarImage(), organizer);
+            EventParticipation participation = EventParticipation.builder()
+                    .sub(sub)
+                    .eventId(eventId)
+                    .slug(event.getSlug())
+                    .avatarImage(user.getAvatarImage())
+                    .startedAt(event.getStartedAt())
+                    .title(event.getTitle())
+                    .organizer(organizer)
+                    .build();
 
             UserRegisteredToEventDto dto = new UserRegisteredToEventDto();
             dto.setSub(sub);
             dto.setEventId(eventId);
+            dto.setSlug(event.getSlug());
             dto.setEmail(user.getEmail());
             dto.setUsername(user.getUsername());
             dto.setOrganizer(organizer);
@@ -65,5 +79,19 @@ public class EventParticipationService {
         } else {
             throw new IllegalStateException("No JWT authentication found in context");
         }
+    }
+
+    public List<UserEventsResponse> getUserEvents(String sub) {
+        var participations = repository.findBysub(sub);
+
+        return participations.stream()
+                .map(participation -> UserEventsResponse.builder()
+                        .sub(participation.getSub())
+                        .slug(participation.getSlug())
+                        .startedAt(participation.getStartedAt())
+                        .title(participation.getTitle())
+                        .organizer(participation.isOrganizer())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

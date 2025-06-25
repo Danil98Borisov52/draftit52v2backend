@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class ParticipantDto {
     private Long eventId;
     private String sub;
+    private String slug;
     private String userName;
     private LocalDateTime registeredAt;
     private String email;

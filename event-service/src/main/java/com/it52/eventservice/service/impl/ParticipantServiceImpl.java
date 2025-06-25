@@ -35,6 +35,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             EventParticipant participant = new EventParticipant();
             participant.setEventId(participantDto.getEventId());
             participant.setSub(participantDto.getSub());
+            participant.setSlug(participantDto.getSlug());
             participant.setRegisteredAt(participantDto.getRegisteredAt());
             participant.setAvatarImage(participantDto.getAvatarImage());
             participant.setOrganizer(participantDto.isOrganizer());

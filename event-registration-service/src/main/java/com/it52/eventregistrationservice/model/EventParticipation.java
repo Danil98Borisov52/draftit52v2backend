@@ -26,6 +26,15 @@ public class EventParticipation {
     @Column(name = "event_id", nullable = false)
     private Long eventId;
 
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name ="slug")
+    private String slug;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

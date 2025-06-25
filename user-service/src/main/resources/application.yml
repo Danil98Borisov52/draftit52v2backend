@@ -45,6 +45,13 @@ spring:
     oauth2:
       client:
         registration:
+          event-registration-service:
+            client-id: it52-client
+            client-secret: vHgP94O0lsGldQHfcHreP02y4X0PsRKQ
+            scope: openid, profile, email
+            provider: keycloak
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
           keycloak:
             client-id: it52-client
             client-secret: vHgP94O0lsGldQHfcHreP02y4X0PsRKQ
@@ -68,3 +75,7 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
     org.springframework.security.oauth2.client: TRACE
+
+eventregistration:
+  service:
+    url: http://event-registration-service:8088

@@ -3,12 +3,12 @@ package com.it52.eventregistrationservice.controller;
 
 import com.it52.eventregistrationservice.dto.EventParticipationRequest;
 import com.it52.eventregistrationservice.dto.EventParticipationResponse;
+import com.it52.eventregistrationservice.dto.UserEventsResponse;
 import com.it52.eventregistrationservice.service.EventParticipationService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/participations")
@@ -24,11 +24,22 @@ public class EventParticipationController {
     public EventParticipationResponse register(@RequestBody EventParticipationRequest request) {
         var participation = participationService.register(request.getEventId(), request.isOrganizer());
 
-        return new EventParticipationResponse(
-                participation.getId(),
-                participation.getSub(),
-                participation.getEventId(),
-                participation.getAvatarImage(),
-                participation.isOrganizer());
+        return EventParticipationResponse.builder()
+                .id(participation.getId())
+                .sub(participation.getSub())
+                .eventId(participation.getEventId())
+                .avatarImage(participation.getAvatarImage())
+                .organizer(participation.isOrganizer())
+                .build();
+    }
+
+    @GetMapping("/user/{sub}")
+    public List<UserEventsResponse> getUserEvents(@PathVariable("sub") String sub) {
+        List<UserEventsResponse> participations = participationService.getUserEvents(sub);
+
+        if (participations.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return participations;
     }
 }

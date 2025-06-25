@@ -3,6 +3,8 @@ package com.it52.user.dto;
 import com.it52.user.model.User;
 import lombok.*;
 
+import java.util.List;
+
 @Data
 public class UserDTO {
 
@@ -20,4 +22,5 @@ public class UserDTO {
     private String website;
     private Boolean subscription;
     private String employment;
+    private List<UserEventParticipationDTO> userEventParticipation;
 }
