@@ -84,6 +84,18 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // если не найден или не аутентифицирован
     }
 
+    @DeleteMapping("/delete/{sub}")
+    public ResponseEntity<Void> deleteUserBySub(@PathVariable String sub) {
+        User user = userService.getUserBySub(sub);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        userService.deleteUser(user);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
 
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {
@@ -91,11 +103,4 @@ public class UserController {
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
-
-
-/*    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleNotFound(Exception ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Страница не найдена. Убедитесь, что путь введен правильно.");
-    }*/
 }

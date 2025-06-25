@@ -61,7 +61,7 @@ public class KeycloakServiceImpl implements KeycloakService {
      * Получение access_token для администратора
      */
     public String getAdminAccessToken() {
-        String tokenUrl = String.format("%s/realms/master/protocol/openid-connect/token", keycloakUrl);
+        String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -74,6 +74,8 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, request, Map.class);
+            Map responseBody = response.getBody();
+            log.info("Ответ от Keycloak: {}", responseBody);
             return (String) response.getBody().get("access_token");
         } catch (Exception e) {
             log.error("Ошибка при получении admin токена Keycloak: {}", e.getMessage(), e);

@@ -189,7 +189,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(User user) {
-        userRepository.delete(user);
         keycloakService.deleteUserInKeycloak(user.getSub());
+        userRepository.delete(user);
     }
 }
