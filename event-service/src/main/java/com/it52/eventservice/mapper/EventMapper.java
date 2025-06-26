@@ -1,19 +1,17 @@
 package com.it52.eventservice.mapper;
 
-import com.it52.eventservice.dto.EventCreateDto;
+import com.it52.eventservice.dto.EventDto;
 import com.it52.eventservice.dto.EventResponseDto;
-import com.it52.eventservice.dto.ParticipantDto;
 import com.it52.eventservice.model.Event;
 import com.it52.eventservice.enums.EventKind;
 import com.it52.eventservice.enums.EventPriceType;
 import com.it52.eventservice.enums.EventStatus;
 import com.it52.eventservice.model.EventParticipant;
 import com.it52.eventservice.util.EnumConverter;
+import com.it52.eventservice.util.SlugUtil;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -26,10 +24,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 
+import static com.it52.eventservice.util.SlugUtil.createSlug;
+
+@RequiredArgsConstructor
 @Component
 public class EventMapper {
 
-    public Event create(EventCreateDto dto) {
+    public Event create(EventDto dto) {
         return Event.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
@@ -107,18 +108,6 @@ public class EventMapper {
             System.err.println("Ошибка загрузки изображения из MinIO: " + e.getMessage());
             return null;
         }
-    }
-
-    private static String createSlug(LocalDateTime startedAt, String title){
-        String datePart = startedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        String titlePart = title
-                .toLowerCase()
-                .replaceAll("[^a-z0-9\\s]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
-
-        return datePart + "-" + titlePart;
     }
 
     private static String getStatus(LocalDateTime startedAt) {

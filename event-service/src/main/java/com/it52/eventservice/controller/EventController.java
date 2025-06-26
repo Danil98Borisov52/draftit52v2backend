@@ -1,9 +1,11 @@
 package com.it52.eventservice.controller;
 
-import com.it52.eventservice.dto.EventCreateDto;
+import com.it52.eventservice.dto.EventDto;
 import com.it52.eventservice.dto.EventResponseDto;
+import com.it52.eventservice.dto.EventUpdateDto;
 import com.it52.eventservice.service.api.EventQueryService;
 import com.it52.eventservice.service.api.EventService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +30,7 @@ public class EventController {
 
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<EventResponseDto> create(
-            @RequestPart("event") EventCreateDto eventDto,
+            @RequestPart("event") EventDto eventDto,
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
         EventResponseDto createdEvent = eventService.createEvent(eventDto, image);
@@ -69,6 +71,17 @@ public class EventController {
     @GetMapping("/{slug}/approve")
     public void approve(@PathVariable String slug) {
         eventService.approveEvent(slug);
+    }
+
+    @PutMapping(value = "/{slug}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<EventResponseDto> updateEventBySlug(
+            @PathVariable String slug,
+            @RequestPart("event") @Valid EventUpdateDto eventDto,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        EventResponseDto updated = eventService.updateEvent(slug, eventDto, image);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{slug}")
