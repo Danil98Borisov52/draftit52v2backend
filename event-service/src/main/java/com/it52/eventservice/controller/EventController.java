@@ -66,7 +66,7 @@ public class EventController {
         return eventQueryService.getPendingApproval(pageable, kind, status);
     }
 
-    @PutMapping("/{slug}/approve")
+    @GetMapping("/{slug}/approve")
     public void approve(@PathVariable String slug) {
         eventService.approveEvent(slug);
     }

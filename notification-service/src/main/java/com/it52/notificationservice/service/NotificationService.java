@@ -59,6 +59,13 @@ public class NotificationService {
             String subject = "Новое мероприятие: " + event.getTitle();
 
             Map<String, Object> model = new HashMap<>();
+            model.put("createdAt", formatDate(event.getCreatedAt()));
+            model.put("updatedAt", formatDate(event.getUpdatedAt()));
+            model.put("published", event.isPublished());
+            model.put("slug", event.getSlug());
+            model.put("kind", event.getKind());
+            model.put("foreignLink", event.getForeignLink());
+            model.put("pageviews", event.getPageviews());
             model.put("title", event.getTitle());
             model.put("description", event.getDescription());
             model.put("startedAt", formatDate(event.getStartedAt()));
@@ -176,11 +183,8 @@ public class NotificationService {
         }
     }
 
-    private String formatDate(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return (date != null)
-                ? date.format(formatter)
-                : "не указана";
+    private String formatDate(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) : "не указана";
     }
 }
 

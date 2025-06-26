@@ -101,10 +101,10 @@
         <tr><td class="label">📌 Название:</td><td class="value">${title}</td></tr>
         <tr><td class="label">📝 Описание:</td><td class="value">${description}</td></tr>
         <tr><td class="label">🗓 Дата начала:</td><td class="value">${startedAt}</td></tr>
-        <tr><td class="label">📍 Место проведения:</td><td class="value">${place}</td></tr>
+        <tr><td class="label">📍 Место:</td><td class="value">${place}</td></tr>
         <tr><td class="label">🏠 Адрес:</td><td class="value">${address}</td></tr>
         <#if addressComment?has_content>
-            <tr><td class="label">💬 Комментарий:</td><td class="value">${addressComment}</td></tr>
+            <tr><td class="label">💬 Комментарий к адресу:</td><td class="value">${addressComment}</td></tr>
         </#if>
         <tr><td class="label">👤 Автор:</td><td class="value">${authorName}</td></tr>
         <tr><td class="label">💰 Участие:</td><td class="value">${typePrice}</td></tr>
@@ -115,8 +115,21 @@
         </#if>
     </table>
 
+    <hr style="margin-top:30px;">
+
+    <h3 style="color: #1a73e8;">ℹ️ Дополнительная информация</h3>
+    <table>
+        <tr><td class="label">📅 Создано:</td><td class="value">${createdAt}</td></tr>
+        <tr><td class="label">🛠 Обновлено:</td><td class="value">${updatedAt}</td></tr>
+        <tr><td class="label">🧾 Slug:</td><td class="value">${slug}</td></tr>
+        <tr><td class="label">🎯 Тип (kind):</td><td class="value">${kind}</td></tr>
+        <tr><td class="label">🌐 Foreign link:</td><td class="value">${foreignLink! "не указан"}</td></tr>
+        <tr><td class="label">📊 Просмотры:</td><td class="value">${pageviews! "неизвестно"}</td></tr>
+        <tr><td class="label">📢 Опубликовано:</td><td class="value">${published?string("Да", "Нет")}</td></tr>
+    </table>
+
     <div class="button-container">
-        <a class="approve-button" href="http://localhost:8081/api/events/1145/approve" target="_blank">✅ Одобрить мероприятие</a>
+        <a class="approve-button" href="http://localhost:8081/api/events/${slug}/approve" target="_blank">✅ Одобрить мероприятие</a>
     </div>
 
     <div class="footer">
