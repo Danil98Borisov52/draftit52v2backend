@@ -1,8 +1,10 @@
 package com.it52.eventregistrationservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.eventregistrationservice.client.EventServiceClient;
 import com.it52.eventregistrationservice.client.UserServiceClient;
 import com.it52.eventregistrationservice.dto.EventParticipationResponse;
+import com.it52.eventregistrationservice.dto.UserChangedEvent;
 import com.it52.eventregistrationservice.dto.UserEventsResponse;
 import com.it52.eventregistrationservice.dto.UserRegisteredToEventDto;
 import com.it52.eventregistrationservice.kafka.KafkaProducer;
@@ -10,6 +12,9 @@ import com.it52.eventregistrationservice.model.EventParticipation;
 import com.it52.eventregistrationservice.repository.EventParticipationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -22,9 +27,11 @@ import java.util.stream.Collectors;
 @Service
 public class EventParticipationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(EventParticipationService.class);
     private final EventParticipationRepository repository;
     private final UserServiceClient userServiceClient;
     private final EventServiceClient eventServiceClient;
+    private final ObjectMapper objectMapper;
     private final KafkaProducer kafkaProducer;
 
     @Transactional
@@ -80,6 +87,26 @@ public class EventParticipationService {
 
         } else {
             throw new IllegalStateException("No JWT authentication found in context");
+        }
+    }
+
+    @KafkaListener(topics = "user_changed", groupId = "event-registration-group")
+    public void listenUserChanged(String message) {
+        try {
+            UserChangedEvent user = objectMapper.readValue(message, UserChangedEvent.class);
+            logger.info("Received user_changed user: {}", user);
+
+            List<EventParticipation> participants = repository.findBysub(user.getSub());
+
+            for (EventParticipation participant : participants) {
+                participant.setAvatarImage(user.getAvatarImage());
+                participant.setAnonymous(user.isAnonymous());
+            }
+
+            repository.saveAll(participants);
+
+        } catch (Exception e) {
+            logger.error("Failed to process user_changed user", e);
         }
     }
 

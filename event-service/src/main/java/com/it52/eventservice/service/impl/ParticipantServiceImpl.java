@@ -54,7 +54,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     public void listenUserChanged(String message) {
         try {
             UserChangedEvent user = objectMapper.readValue(message, UserChangedEvent.class);
-            logger.info("Received user_changed event: {}", user);
+            logger.info("Полученный пользователь: {}", user);
 
             List<EventParticipant> participants = participantRepository.findAllBySub(user.getSub());
 
@@ -66,7 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             participantRepository.saveAll(participants);
 
         } catch (Exception e) {
-            logger.error("Failed to process user_changed event", e);
+            logger.error("Не удалось обработать изменение пользователя", e);
         }
     }
 
