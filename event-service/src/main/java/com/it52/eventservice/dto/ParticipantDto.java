@@ -19,4 +19,5 @@ public class ParticipantDto {
     private String eventPlace;
     private String avatarImage;
     private boolean organizer;
+    private boolean anonymous;
 }

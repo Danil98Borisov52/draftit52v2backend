@@ -38,4 +38,7 @@ public class EventParticipant {
 
     @Column(name = "organizer")
     private boolean organizer;
+
+    @Column(name = "anonymous")
+    private boolean anonymous;
 }

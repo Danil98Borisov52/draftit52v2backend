@@ -10,5 +10,6 @@ public class UserEventParticipationDTO{
     private String title;
     private LocalDateTime startedAt;
     private String slug;
+    private boolean anonymous;
     private boolean organizer;
 }

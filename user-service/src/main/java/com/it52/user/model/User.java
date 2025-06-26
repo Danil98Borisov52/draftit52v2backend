@@ -59,6 +59,9 @@ public class User {
     @Column(name = "employment")
     private String employment;
 
+    @Column(name = "anonymous")
+    private boolean anonymous;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

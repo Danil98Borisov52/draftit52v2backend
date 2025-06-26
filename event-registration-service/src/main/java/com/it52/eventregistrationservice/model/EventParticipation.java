@@ -47,6 +47,9 @@ public class EventParticipation {
     @Column(name = "organizer")
     private boolean organizer;
 
+    @Column(name = "anonymous")
+    private boolean anonymous;
+
     public EventParticipation(String sub, Long eventId) {
         this.sub = sub;
         this.eventId = eventId;

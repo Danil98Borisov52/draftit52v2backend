@@ -19,4 +19,5 @@ public class UserRegisteredToEventDto {
     private String eventPlace;
     private LocalDateTime registeredAt;
     private boolean organizer;
+    private boolean anonymous;
 }

@@ -30,6 +30,7 @@ public class EventParticipationController {
                 .eventId(participation.getEventId())
                 .avatarImage(participation.getAvatarImage())
                 .organizer(participation.isOrganizer())
+                .organizer(participation.isAnonymous())
                 .build();
     }
 

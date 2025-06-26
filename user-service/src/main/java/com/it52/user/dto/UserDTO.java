@@ -22,5 +22,6 @@ public class UserDTO {
     private String website;
     private Boolean subscription;
     private String employment;
+    private boolean anonymous;
     private List<UserEventParticipationDTO> userEventParticipation;
 }

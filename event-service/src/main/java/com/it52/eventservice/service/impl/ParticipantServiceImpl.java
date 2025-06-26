@@ -37,7 +37,8 @@ public class ParticipantServiceImpl implements ParticipantService {
             participant.setSub(participantDto.getSub());
             participant.setSlug(participantDto.getSlug());
             participant.setRegisteredAt(participantDto.getRegisteredAt());
-            participant.setAvatarImage(participantDto.getAvatarImage());
+            participant.setAvatarImage("http://minio:9000/event-images/1229_Бенедикт.jpg");
+            participant.setAnonymous(participantDto.isAnonymous());
             participant.setOrganizer(participantDto.isOrganizer());
 
             participantRepository.save(participant);

@@ -12,4 +12,5 @@ public class UserUpdateDTO {
     private String website;
     private Boolean subscription;
     private String employment;
+    private boolean anonymous;
 }

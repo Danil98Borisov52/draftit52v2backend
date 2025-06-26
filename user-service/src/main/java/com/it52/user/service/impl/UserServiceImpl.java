@@ -94,6 +94,7 @@ public class UserServiceImpl implements UserService {
                             .role(0)
                             .createdAt(LocalDateTime.now())
                             .updatedAt(LocalDateTime.now())
+                            .anonymous(false)
                             .build();
 
                     kafkaProducer.sendNewUserEvent(newUser);

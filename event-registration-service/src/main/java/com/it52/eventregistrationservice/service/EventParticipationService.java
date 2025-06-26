@@ -53,7 +53,8 @@ public class EventParticipationService {
                     .sub(sub)
                     .eventId(eventId)
                     .slug(event.getSlug())
-                    .avatarImage(user.getAvatarImage())
+                    .avatarImage("http://minio:9000/event-images/1229_Бенедикт.jpg")
+                    .anonymous(user.isAnonymous())
                     .startedAt(event.getStartedAt())
                     .title(event.getTitle())
                     .organizer(organizer)
@@ -66,8 +67,9 @@ public class EventParticipationService {
             dto.setEmail(user.getEmail());
             dto.setUsername(user.getUsername());
             dto.setOrganizer(organizer);
+            dto.setAnonymous(user.isAnonymous());
             dto.setFirstName(user.getFirstName());
-            dto.setAvatarImage(user.getAvatarImage());
+            dto.setAvatarImage("http://minio:9000/event-images/1229_Бенедикт.jpg");
             dto.setEventTitle(event.getTitle());
             dto.setEventDate(event.getStartedAt());
             dto.setEventPlace(event.getPlace());

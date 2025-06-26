@@ -7,10 +7,12 @@ import com.it52.user.service.api.EventRegistrationServiceClient;
 import com.it52.user.service.api.UserService;
 import com.it52.user.utils.SecurityUtils;
 import com.it52.user.utils.UserMapper;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -30,37 +32,41 @@ public class UserController {
         this.eventRegistrationServiceClient = eventRegistrationServiceClient;
     }
 
-    @PutMapping("/edit")
-    public ResponseEntity<UserDTO> updateCurrentUserProfile(@RequestBody UserUpdateDTO userUpdateDTO) {
+    @PutMapping(value = "/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDTO> updateCurrentUserProfile(
+            @RequestPart("user") UserUpdateDTO userUpdateDTO,
+            @RequestPart(value = "avatarImage", required = false) MultipartFile avatarImage) {
+
         String currentUserSub = userService.getCurrentUserSub();
 
-        if (currentUserSub != null) {
-            User existingUser = userService.getUserBySub(currentUserSub);
-
-            if (existingUser != null) {
-                for (Field field : UserUpdateDTO.class.getDeclaredFields()) {
-                    field.setAccessible(true);
-                    try {
-                        Object newValue = field.get(userUpdateDTO);
-                        if (newValue != null) {
-                            String setterMethodName = "set" + capitalize(field.getName());
-                            Method setterMethod = User.class.getMethod(setterMethodName, field.getType());
-                            setterMethod.invoke(existingUser, newValue);
-                        }
-                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                }
-                userService.saveUser(existingUser);
-
-                UserDTO userDTO = userMapper.toDto(existingUser);
-                return new ResponseEntity<>(userDTO, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Если пользователь не найден
-            }
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Если не аутентифицирован
+        if (currentUserSub == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+
+        User existingUser = userService.getUserBySub(currentUserSub);
+        if (existingUser == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Обновление полей
+        for (Field field : UserUpdateDTO.class.getDeclaredFields()) {
+            field.setAccessible(true);
+            try {
+                Object newValue = field.get(userUpdateDTO);
+                if (newValue != null) {
+                    String setter = "set" + capitalize(field.getName());
+                    Method method = User.class.getMethod(setter, field.getType());
+                    method.invoke(existingUser, newValue);
+                }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+
+        userService.uploadAvatarIfPresent(avatarImage, existingUser);
+
+        userService.saveUser(existingUser);
+        return ResponseEntity.ok(userMapper.toDto(existingUser));
     }
 
     @GetMapping("/profile/{sub}")
