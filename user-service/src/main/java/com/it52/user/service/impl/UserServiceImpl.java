@@ -180,6 +180,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
+        kafkaProducer.sendUserChanges(user);
         return userRepository.save(user);
     }
 

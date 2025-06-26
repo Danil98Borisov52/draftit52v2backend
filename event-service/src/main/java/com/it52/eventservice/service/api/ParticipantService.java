@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ParticipantService {
     void listenUserRegisteredToEvent(String message);
+    void listenUserChanged(String message);
     List<EventParticipant> getParticipant(Long eventId);
 }

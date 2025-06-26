@@ -2,6 +2,7 @@ package com.it52.eventservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.eventservice.dto.ParticipantDto;
+import com.it52.eventservice.dto.UserChangedEvent;
 import com.it52.eventservice.model.Author;
 import com.it52.eventservice.model.EventParticipant;
 import com.it52.eventservice.repository.ParticipantRepository;
@@ -47,6 +48,28 @@ public class ParticipantServiceImpl implements ParticipantService {
             logger.error("Ошибка обработки Kafka-сообщения: {}", message, e);
         }
     }
+
+    @Override
+    @KafkaListener(topics = "user_changed", groupId = "event-group")
+    public void listenUserChanged(String message) {
+        try {
+            UserChangedEvent user = objectMapper.readValue(message, UserChangedEvent.class);
+            logger.info("Received user_changed event: {}", user);
+
+            List<EventParticipant> participants = participantRepository.findAllBySub(user.getSub());
+
+            for (EventParticipant participant : participants) {
+                participant.setAvatarImage(user.getAvatarImage());
+                participant.setAnonymous(user.isAnonymous());
+            }
+
+            participantRepository.saveAll(participants);
+
+        } catch (Exception e) {
+            logger.error("Failed to process user_changed event", e);
+        }
+    }
+
 
     @Override
     public List<EventParticipant> getParticipant(Long eventId) {

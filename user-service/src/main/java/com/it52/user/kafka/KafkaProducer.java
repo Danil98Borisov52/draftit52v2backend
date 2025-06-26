@@ -16,4 +16,8 @@ public class KafkaProducer {
     public void sendNewUserEvent(User user) {
         kafkaTemplate.send("user_registered", user);
     }
+
+    public void sendUserChanges(User user) {
+        kafkaTemplate.send("user_changed", user);
+    }
 }
