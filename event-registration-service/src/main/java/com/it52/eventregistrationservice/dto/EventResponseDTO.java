@@ -1,6 +1,5 @@
-package com.it52.eventservice.dto;
+package com.it52.eventregistrationservice.dto;
 
-import com.it52.eventservice.model.EventParticipant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -10,10 +9,13 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Data
-public class EventResponseDto {
-
+public class EventResponseDTO {
 
     @NotBlank(message = "Название обязательно")
     private String title;
@@ -44,8 +46,6 @@ public class EventResponseDto {
 
     private String titleImage;
 
-    private String titleImageURL;
-
     @NotBlank(message = "Slug обязательный")
     private String slug;
 
@@ -56,9 +56,7 @@ public class EventResponseDto {
     private List<@NotBlank String> tags;
 
     @NotBlank(message = "Адрес обязателен")
-    private String address;
+    private AddressDTO address;
 
     private String addressComment;
-
-    private List<EventParticipant> participants;
 }

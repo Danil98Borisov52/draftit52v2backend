@@ -67,8 +67,9 @@ public class Event {
     @Column(name = "kind")
     private Integer kind;
 
-    @Column(name = "address_id")
-    private Long addressId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
 
     @Column(name = "address_comment")
     private String addressComment;

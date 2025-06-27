@@ -1,7 +1,7 @@
 package com.it52.eventservice.service.impl;
 
-import com.it52.eventservice.dto.EventParticipationRequest;
-import com.it52.eventservice.dto.EventParticipationResponse;
+import com.it52.eventservice.dto.registration.EventParticipationRequestDTO;
+import com.it52.eventservice.dto.registration.EventParticipationResponseDTO;
 import com.it52.eventservice.service.api.EventRegistrationServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,17 +21,17 @@ public class EventRegistrationServiceClientImpl implements EventRegistrationServ
     }
 
     @Override
-    public EventParticipationResponse registrationOrganizer(String token, Long eventId) {
+    public EventParticipationResponseDTO registrationOrganizer(String token, Long eventId) {
         logger.info("Sending participation request for eventId: {}", eventId);
 
-        EventParticipationRequest request = new EventParticipationRequest(eventId, true);
+        EventParticipationRequestDTO request = new EventParticipationRequestDTO(eventId, true);
 
         return webClient.post()
                 .uri("/api/participations")
                 .headers(headers -> headers.setBearerAuth(token))
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(EventParticipationResponse.class)
+                .bodyToMono(EventParticipationResponseDTO.class)
                 .doOnNext(response -> logger.info("event-registration-service responded: {}", response))
                 .onErrorResume(e -> {
                     logger.error("Failed to register participation", e);

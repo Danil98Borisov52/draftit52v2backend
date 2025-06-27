@@ -1,6 +1,6 @@
 package com.it52.eventservice.service.impl;
 
-import com.it52.eventservice.dto.EventResponseDto;
+import com.it52.eventservice.dto.event.EventResponseDTO;
 import com.it52.eventservice.enums.EventKind;
 import com.it52.eventservice.enums.EventStatus;
 import com.it52.eventservice.model.Event;
@@ -31,7 +31,7 @@ public class EventQueryServiceImpl implements EventQueryService {
     private final MinioClient minioClient;
 
     @Override
-    public Page<EventResponseDto> getPublicEvents(Pageable pageable, String kind, String status) {
+    public Page<EventResponseDTO> getPublicEvents(Pageable pageable, String kind, String status) {
 
         EventKind eventKind = Arrays.stream(EventKind.values())
                 .filter(type -> type.name().equalsIgnoreCase(kind))
@@ -44,11 +44,12 @@ public class EventQueryServiceImpl implements EventQueryService {
                         taggingService.getTagsByEvent(event),
                         authorService.getAuthorName(event),
                         participantService.getParticipant(event.getId()),
+                        event.getAddress(),
                         minioClient));
     }
 
     @Override
-    public Page<EventResponseDto> getPendingApproval(Pageable pageable, String kind, String status) {
+    public Page<EventResponseDTO> getPendingApproval(Pageable pageable, String kind, String status) {
         EventKind eventKind = Arrays.stream(EventKind.values())
                 .filter(type -> type.name().equalsIgnoreCase(kind))
                 .findFirst()
@@ -59,6 +60,7 @@ public class EventQueryServiceImpl implements EventQueryService {
                         taggingService.getTagsByEvent(event),
                         authorService.getAuthorName(event),
                         participantService.getParticipant(event.getId()),
+                        event.getAddress(),
                         minioClient));
     }
 

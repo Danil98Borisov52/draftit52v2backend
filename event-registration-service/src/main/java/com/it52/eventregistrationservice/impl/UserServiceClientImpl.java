@@ -2,12 +2,10 @@ package com.it52.eventregistrationservice.impl;
 
 import com.it52.eventregistrationservice.client.UserServiceClient;
 
-import com.it52.eventregistrationservice.dto.UserDTO;
+import com.it52.eventregistrationservice.dto.UserResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -23,7 +21,7 @@ public class UserServiceClientImpl implements UserServiceClient {
     }
 
     @Override
-    public UserDTO getBySub(String token, String sub) {
+    public UserResponseDTO getBySub(String token, String sub) {
         logger.info("Sending request to user-service for userId: {}", sub);
 
         // Получение пользователя, если он существует
@@ -31,7 +29,7 @@ public class UserServiceClientImpl implements UserServiceClient {
                 .uri("/api/users/profile/{sub}", sub)
                 .headers(headers -> headers.setBearerAuth(token))
                 .retrieve()
-                .bodyToMono(UserDTO.class)  // Предполагается, что объект пользователя будет в ответе
+                .bodyToMono(UserResponseDTO.class)  // Предполагается, что объект пользователя будет в ответе
                 .doOnNext(user -> logger.info("user-service responded: {}", user))
                 .onErrorResume(e -> {
                     logger.error("Failed to get user", e);

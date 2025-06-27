@@ -1,8 +1,8 @@
 package com.it52.eventservice.controller;
 
-import com.it52.eventservice.dto.EventDto;
-import com.it52.eventservice.dto.EventResponseDto;
-import com.it52.eventservice.dto.EventUpdateDto;
+import com.it52.eventservice.dto.event.EventRequestDTO;
+import com.it52.eventservice.dto.event.EventResponseDTO;
+import com.it52.eventservice.dto.event.EventUpdateRequestDTO;
 import com.it52.eventservice.service.api.EventQueryService;
 import com.it52.eventservice.service.api.EventService;
 import jakarta.validation.Valid;
@@ -29,16 +29,16 @@ public class EventController {
     private final EventQueryService eventQueryService;
 
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<EventResponseDto> create(
-            @RequestPart("event") EventDto eventDto,
+    public ResponseEntity<EventResponseDTO> create(
+            @RequestPart("event") EventRequestDTO eventRequestDto,
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        EventResponseDto createdEvent = eventService.createEvent(eventDto, image);
+        EventResponseDTO createdEvent = eventService.createEvent(eventRequestDto, image);
         return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     @GetMapping("/public")
-    public Page<EventResponseDto> getPublicEvents(
+    public Page<EventResponseDTO> getPublicEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String kind,
@@ -49,7 +49,7 @@ public class EventController {
     }
 
     @GetMapping("/{param}")
-    public ResponseEntity<EventResponseDto> getEventBySlug(@PathVariable String param) {
+    public ResponseEntity<EventResponseDTO> getEventBySlug(@PathVariable String param) {
         if (isNumeric(param)) {
             return ResponseEntity.ok(eventService.getEventById(Long.parseLong(param)));
         } else {
@@ -58,7 +58,7 @@ public class EventController {
     }
 
     @GetMapping("/moderation")
-    public Page<EventResponseDto> getPending(
+    public Page<EventResponseDTO> getPending(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String kind,
@@ -75,12 +75,12 @@ public class EventController {
 
     @PutMapping(value = "/{slug}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<EventResponseDto> updateEventBySlug(
+    public ResponseEntity<EventResponseDTO> updateEventBySlug(
             @PathVariable String slug,
-            @RequestPart("event") @Valid EventUpdateDto eventDto,
+            @RequestPart("event") @Valid EventUpdateRequestDTO eventUpdateRequestDTO,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        EventResponseDto updated = eventService.updateEvent(slug, eventDto, image);
+        EventResponseDTO updated = eventService.updateEvent(slug, eventUpdateRequestDTO, image);
         return ResponseEntity.ok(updated);
     }
 

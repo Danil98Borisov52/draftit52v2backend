@@ -1,7 +1,7 @@
 package com.it52.eventservice.service.api;
 
-import com.it52.eventservice.dto.EventParticipationResponse;
+import com.it52.eventservice.dto.registration.EventParticipationResponseDTO;
 
 public interface EventRegistrationServiceClient {
-    EventParticipationResponse registrationOrganizer(String token, Long eventId);
+    EventParticipationResponseDTO registrationOrganizer(String token, Long eventId);
 }

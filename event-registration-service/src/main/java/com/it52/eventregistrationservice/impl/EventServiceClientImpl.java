@@ -2,12 +2,10 @@ package com.it52.eventregistrationservice.impl;
 
 import com.it52.eventregistrationservice.client.EventServiceClient;
 
-import com.it52.eventregistrationservice.dto.EventDto;
+import com.it52.eventregistrationservice.dto.EventResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -24,7 +22,7 @@ public class EventServiceClientImpl implements EventServiceClient {
     }
 
     @Override
-    public EventDto getEventById(String token, Long eventId) {
+    public EventResponseDTO getEventById(String token, Long eventId) {
         logger.info("Sending request to event-service for eventId: {}", eventId);
 
         // Получение события
@@ -32,7 +30,7 @@ public class EventServiceClientImpl implements EventServiceClient {
                 .uri("/api/events/{eventId}", eventId)
                 .headers(headers -> headers.setBearerAuth(token))
                 .retrieve()
-                .bodyToMono(EventDto.class)  // Предполагаем, что возвращаемый объект — EventDto
+                .bodyToMono(EventResponseDTO.class)  // Предполагаем, что возвращаемый объект — EventDto
                 .doOnNext(event -> logger.info("event-service responded: {}", event))
                 .onErrorResume(e -> {
                     logger.error("Failed to get event", e);

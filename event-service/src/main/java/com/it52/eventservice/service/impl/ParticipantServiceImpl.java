@@ -1,20 +1,17 @@
 package com.it52.eventservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.it52.eventservice.dto.ParticipantDto;
-import com.it52.eventservice.dto.UserChangedEvent;
-import com.it52.eventservice.model.Author;
+import com.it52.eventservice.dto.registration.ParticipantDto;
+import com.it52.eventservice.dto.user.UserChangeRequestDTO;
 import com.it52.eventservice.model.EventParticipant;
 import com.it52.eventservice.repository.ParticipantRepository;
 import com.it52.eventservice.service.api.ParticipantService;
-import com.it52.eventservice.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -53,7 +50,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @KafkaListener(topics = "user_changed", groupId = "event-group")
     public void listenUserChanged(String message) {
         try {
-            UserChangedEvent user = objectMapper.readValue(message, UserChangedEvent.class);
+            UserChangeRequestDTO user = objectMapper.readValue(message, UserChangeRequestDTO.class);
             logger.info("Полученный пользователь: {}", user);
 
             List<EventParticipant> participants = participantRepository.findAllBySub(user.getSub());

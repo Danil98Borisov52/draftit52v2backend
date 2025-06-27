@@ -1,4 +1,4 @@
-package com.it52.eventservice.dto;
+package com.it52.eventservice.dto.event;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class EventDto {
+public class EventRequestDTO {
 
     @NotBlank(message = "Название обязательно")
     private String title;
@@ -22,9 +22,6 @@ public class EventDto {
     @NotBlank(message = "Описание обязательно")
     private String description;
 
-    @NotBlank(message = "Ссылка на картинку обязательна")
-    private String titleImage;
-
     @NotBlank(message = "Адрес обязателен")
     private String place;
 
@@ -34,12 +31,14 @@ public class EventDto {
     @NotNull(message = "Укажите тип мероприятия")
     private String kind;
 
-    private Long addressId;
-
-    private String addressComment;
-
     @NotNull(message = "Укажите тип участия в мероприятии")
     private String typePrice;
+
+    @NotNull(message = "Координаты обязательны")
+    @Size(min = 2, max = 2, message = "Должны быть указаны широта и долгота")
+    private List<@NotNull Double> coords;
+
+    private String addressComment;
 
     @Size(max = 10, message = "Можно указать не более 10 тэгов")
     private List<@NotBlank String> tags;

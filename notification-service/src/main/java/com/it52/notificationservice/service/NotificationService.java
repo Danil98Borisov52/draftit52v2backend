@@ -59,36 +59,40 @@ public class NotificationService {
             String subject = "Новое мероприятие: " + event.getTitle();
 
             Map<String, Object> model = new HashMap<>();
-            model.put("createdAt", formatDate(event.getCreatedAt()));
-            model.put("updatedAt", formatDate(event.getUpdatedAt()));
-            model.put("published", event.isPublished());
-            model.put("slug", event.getSlug());
-            model.put("kind", event.getKind());
-            model.put("foreignLink", event.getForeignLink());
-            model.put("pageviews", event.getPageviews());
             model.put("title", event.getTitle());
             model.put("description", event.getDescription());
-            model.put("startedAt", formatDate(event.getStartedAt()));
-            model.put("place", event.getPlace());
-            model.put("address", event.getAddress());
-            model.put("addressComment", event.getAddressComment());
             model.put("authorName", event.getAuthorName());
-            model.put("typePrice", event.getTypePrice());
-            model.put("status", event.getStatus());
+            model.put("startedAt", formatDate(event.getStartedAt()));
+            model.put("address", event.getAddress().getUnrestrictedValue());
+            model.put("addressComment", event.getAddressComment());
+            model.put("slug", event.getSlug());
+            model.put("kind", localizeKind(event.getKind()));
+            model.put("typePrice", localizePriceType(event.getTypePrice()));
             model.put("externalUrl", event.getExternalUrl());
             model.put("tags", event.getTags());
             model.put("titleImageCid", "eventBanner");
 
-            String fullUrl = event.getTitleImageURL();
+            String fullUrl = event.getTitleImage();
 
-            URI uri = URI.create(fullUrl);
+            int minioUrlStart = fullUrl.indexOf("http://minio");
+            if (minioUrlStart == -1) {
+                throw new IllegalArgumentException("Minio URL не найден в: " + fullUrl);
+            }
+            String actualMinioUrl = fullUrl.substring(minioUrlStart);
+
+            URI uri = URI.create(actualMinioUrl);
             String path = uri.getPath();
 
-            String objectName = path.startsWith("/" + bucket + "/")
-                    ? path.substring(bucket.length() + 2)
-                    : path.substring(1);
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
 
-            System.out.println("Объект в бакете: " + objectName);
+            String[] parts = path.split("/", 2);
+            if (parts.length < 2) {
+                throw new IllegalArgumentException("Невалидный путь к изображению: " + path);
+            }
+
+            String objectName = parts[1];
 
             try (InputStream imageStream = minioClient.getObject(
                     GetObjectArgs.builder()
@@ -154,37 +158,58 @@ public class NotificationService {
     @KafkaListener(topics = "user_registered_to_event", groupId = "notification-group")
     public void listenUserRegisteredToEvent(String message) {
         try {
+            // 1. Десериализация
             UserRegisteredToEventDto dto = objectMapper.readValue(message, UserRegisteredToEventDto.class);
 
+            // 2. Подготовка данных
             String subject = "Вы зарегистрированы на мероприятие: " + dto.getEventTitle();
 
-            Map<String, Object> model = new HashMap<>();
-            model.put("firstName", dto.getFirstName());
-            model.put("username", dto.getUsername());
-            model.put("eventTitle", dto.getEventTitle());
-            model.put("eventDate", formatDate(dto.getEventDate()));
-            model.put("eventPlace", dto.getEventPlace());
+            Map<String, Object> model = Map.of(
+                    "firstName", dto.getFirstName(),
+                    "username", dto.getUsername(),
+                    "eventTitle", dto.getEventTitle(),
+                    "eventDate", formatDate(dto.getEventDate()),
+                    "eventPlace", dto.getEventPlace()
+            );
 
             String templateName = dto.isOrganizer()
                     ? "organizer_registered_to_event.ftl"
                     : "user_registered_to_event.ftl";
 
+            // 3. Генерация письма
             Template template = freemarkerConfig.getTemplate(templateName);
             StringWriter stringWriter = new StringWriter();
             template.process(model, stringWriter);
             String htmlBody = stringWriter.toString();
 
-            logger.info("Sending event registration email to {} for event {}", dto.getEmail(), dto.getEventTitle());
+            // 4. Отправка письма
+            logger.info("📨 Отправка email на {} по событию '{}'", dto.getEmail(), dto.getEventTitle());
             mailService.sendHtmlEmail(dto.getEmail(), subject, htmlBody);
-            logger.info("Event registration email sent successfully");
+            logger.info("✅ Email отправлен успешно");
 
         } catch (Exception e) {
-            logger.error("Failed to process user event registration or send email: {}", e.getMessage(), e);
+            logger.error("❌ Ошибка обработки события регистрации: {}", e.getMessage(), e);
         }
     }
 
     private String formatDate(LocalDateTime dateTime) {
         return dateTime != null ? dateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) : "не указана";
+    }
+
+    private String localizeKind(String kind) {
+        return switch (kind) {
+            case "MEETUP" -> "Встреча";
+            case "EDUCATION" -> "Образовательное мероприятие";
+            default -> "Неизвестный тип";
+        };
+    }
+
+    private String localizePriceType(String priceType) {
+        return switch (priceType) {
+            case "FREE" -> "Бесплатное";
+            case "PAID" -> "Платное";
+            default -> "Неизвестный тип оплаты";
+        };
     }
 }
 

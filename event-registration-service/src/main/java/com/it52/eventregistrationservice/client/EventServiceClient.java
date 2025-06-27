@@ -1,7 +1,7 @@
 package com.it52.eventregistrationservice.client;
 
-import com.it52.eventregistrationservice.dto.EventDto;
+import com.it52.eventregistrationservice.dto.EventResponseDTO;
 
 public interface EventServiceClient {
-     EventDto getEventById(String token, Long eventId);
+     EventResponseDTO getEventById(String token, Long eventId);
 }

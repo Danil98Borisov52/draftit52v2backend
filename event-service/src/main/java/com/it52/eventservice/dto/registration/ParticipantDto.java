@@ -1,4 +1,4 @@
-package com.it52.eventservice.dto;
+package com.it52.eventservice.dto.registration;
 
 import lombok.Data;
 

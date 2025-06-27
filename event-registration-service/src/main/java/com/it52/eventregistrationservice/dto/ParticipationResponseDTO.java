@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Builder
 @Data
-public class UserEventsResponse {
+public class ParticipationResponseDTO {
     private String sub;
     private String slug;
     private String title;

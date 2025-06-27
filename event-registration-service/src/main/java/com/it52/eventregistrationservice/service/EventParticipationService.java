@@ -3,10 +3,9 @@ package com.it52.eventregistrationservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.eventregistrationservice.client.EventServiceClient;
 import com.it52.eventregistrationservice.client.UserServiceClient;
-import com.it52.eventregistrationservice.dto.EventParticipationResponse;
-import com.it52.eventregistrationservice.dto.UserChangedEvent;
-import com.it52.eventregistrationservice.dto.UserEventsResponse;
-import com.it52.eventregistrationservice.dto.UserRegisteredToEventDto;
+import com.it52.eventregistrationservice.dto.UserChangeRequestDTO;
+import com.it52.eventregistrationservice.dto.ParticipationResponseDTO;
+import com.it52.eventregistrationservice.dto.UserRegisteredToEventDTO;
 import com.it52.eventregistrationservice.kafka.KafkaProducer;
 import com.it52.eventregistrationservice.model.EventParticipation;
 import com.it52.eventregistrationservice.repository.EventParticipationRepository;
@@ -67,7 +66,7 @@ public class EventParticipationService {
                     .organizer(organizer)
                     .build();
 
-            UserRegisteredToEventDto dto = new UserRegisteredToEventDto();
+            UserRegisteredToEventDTO dto = new UserRegisteredToEventDTO();
             dto.setSub(sub);
             dto.setEventId(eventId);
             dto.setSlug(event.getSlug());
@@ -93,7 +92,7 @@ public class EventParticipationService {
     @KafkaListener(topics = "user_changed", groupId = "event-registration-group")
     public void listenUserChanged(String message) {
         try {
-            UserChangedEvent user = objectMapper.readValue(message, UserChangedEvent.class);
+            UserChangeRequestDTO user = objectMapper.readValue(message, UserChangeRequestDTO.class);
             logger.info("Received user_changed user: {}", user);
 
             List<EventParticipation> participants = repository.findBysub(user.getSub());
@@ -110,11 +109,11 @@ public class EventParticipationService {
         }
     }
 
-    public List<UserEventsResponse> getUserEvents(String sub) {
+    public List<ParticipationResponseDTO> getUserEvents(String sub) {
         var participations = repository.findBysub(sub);
 
         return participations.stream()
-                .map(participation -> UserEventsResponse.builder()
+                .map(participation -> ParticipationResponseDTO.builder()
                         .sub(participation.getSub())
                         .slug(participation.getSlug())
                         .startedAt(participation.getStartedAt())

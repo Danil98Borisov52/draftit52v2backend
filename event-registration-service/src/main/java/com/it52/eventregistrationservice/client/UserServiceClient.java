@@ -1,7 +1,7 @@
 package com.it52.eventregistrationservice.client;
 
-import com.it52.eventregistrationservice.dto.UserDTO;
+import com.it52.eventregistrationservice.dto.UserResponseDTO;
 
 public interface UserServiceClient {
-    UserDTO getBySub(String token, String sub);
+    UserResponseDTO getBySub(String token, String sub);
 }

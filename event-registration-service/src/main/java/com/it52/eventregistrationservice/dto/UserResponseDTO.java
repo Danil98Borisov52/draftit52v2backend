@@ -1,9 +1,9 @@
-package com.it52.eventservice.dto;
+package com.it52.eventregistrationservice.dto;
 
 import lombok.Data;
 
 @Data
-public class UserDTO {
+public class UserResponseDTO {
 
     private Long id;
     private String email;
@@ -19,4 +19,5 @@ public class UserDTO {
     private String website;
     private Boolean subscription;
     private String employment;
+    private boolean anonymous;
 }

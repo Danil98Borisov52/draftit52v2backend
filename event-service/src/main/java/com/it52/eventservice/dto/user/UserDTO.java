@@ -1,6 +1,5 @@
-package com.it52.eventregistrationservice.dto;
+package com.it52.eventservice.dto.user;
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data
@@ -11,7 +10,6 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String sub;
-
     private String username;
     private Integer role;
     private String bio;
@@ -20,5 +18,4 @@ public class UserDTO {
     private String website;
     private Boolean subscription;
     private String employment;
-    private boolean anonymous;
 }

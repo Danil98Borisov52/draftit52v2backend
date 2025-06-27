@@ -103,24 +103,22 @@
     <h2>🎉 Вас ждет нечто особенное!</h2>
     <div class="subtitle">Новое мероприятие, которое стоит вашего внимания</div>
 
-    <#-- Если есть titleImage, показываем картинку -->
     <#if titleImageCid?has_content>
-        <img src="cid:${titleImageCid}" alt="Обложка мероприятия" style="max-width:100%; height:auto;"/>
+        <img src="cid:${titleImageCid}" alt="Обложка мероприятия" class="event-image"/>
     </#if>
 
     <table>
         <tr><td class="label">📌 Название:</td><td class="value">${title}</td></tr>
         <tr><td class="label">📝 Описание:</td><td class="value">${description}</td></tr>
         <tr><td class="label">🗓 Дата начала:</td><td class="value">${startedAt}</td></tr>
-        <tr><td class="label">📍 Место:</td><td class="value">${place}</td></tr>
         <tr><td class="label">🏠 Адрес:</td><td class="value">${address}</td></tr>
         <#if addressComment?has_content>
             <tr><td class="label">💬 Комментарий к адресу:</td><td class="value">${addressComment}</td></tr>
         </#if>
         <tr><td class="label">👤 Автор:</td><td class="value">${authorName}</td></tr>
         <tr><td class="label">💰 Участие:</td><td class="value">${typePrice}</td></tr>
-        <tr><td class="label">📄 Статус:</td><td class="value">${status}</td></tr>
-        <tr><td class="label">🔗 Ссылка:</td><td class="value">${externalUrl! "не указана"}</td></tr>
+        <tr><td class="label">🎯 Тип:</td><td class="value">${kind}</td></tr>
+        <tr><td class="label">🔗 Ссылка на регистрацию:</td><td class="value">${externalUrl! "не указана"}</td></tr>
         <#if tags?has_content>
             <tr><td class="label">🏷 Теги:</td><td class="value">${tags?join(", ")}</td></tr>
         </#if>
@@ -130,18 +128,13 @@
 
     <h3 style="color: #1a73e8;">ℹ️ Дополнительная информация</h3>
     <table>
-        <tr><td class="label">📅 Создано:</td><td class="value">${createdAt}</td></tr>
-        <tr><td class="label">🛠 Обновлено:</td><td class="value">${updatedAt}</td></tr>
         <tr><td class="label">🧾 Slug:</td><td class="value">${slug}</td></tr>
-        <tr><td class="label">🎯 Тип (kind):</td><td class="value">${kind}</td></tr>
-        <tr><td class="label">🌐 Foreign link:</td><td class="value">${foreignLink! "не указан"}</td></tr>
-        <tr><td class="label">📊 Просмотры:</td><td class="value">${pageviews! "неизвестно"}</td></tr>
-        <tr><td class="label">📢 Опубликовано:</td><td class="value">${published?string("Да", "Нет")}</td></tr>
+
     </table>
 
     <div class="button-container">
         <a class="approve-button" href="http://localhost:8081/api/events/${slug}/approve" target="_blank">✅ Одобрить мероприятие</a>
-        <a class="edit-button" href="http://localhost:8081/events/${slug}/edit" target="_blank" style="background:#1a73e8; margin-left: 15px;">✏️ Изменить мероприятие</a>
+        <a class="edit-button" href="http://localhost:8081/events/${slug}/edit" target="_blank">✏️ Изменить мероприятие</a>
     </div>
 
     <div class="footer">

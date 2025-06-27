@@ -2,11 +2,10 @@ package com.it52.eventregistrationservice.dto;
 
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-public class UserRegisteredToEventDto {
+public class UserRegisteredToEventDTO {
     private String sub;
     private Long eventId;
     private String slug;

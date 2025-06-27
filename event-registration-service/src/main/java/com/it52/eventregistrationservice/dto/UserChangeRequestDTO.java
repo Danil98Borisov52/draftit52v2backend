@@ -1,4 +1,4 @@
-package com.it52.eventservice.dto;
+package com.it52.eventregistrationservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventParticipationResponse {
-    private Long id;
+public class UserChangeRequestDTO {
     private String sub;
-    private Long eventId;
     private String avatarImage;
+    private boolean anonymous;
 }

@@ -1,17 +1,16 @@
 package com.it52.eventservice.service.impl;
 
 import com.it52.eventservice.config.MinioConfig;
-import com.it52.eventservice.dto.EventDto;
-import com.it52.eventservice.dto.EventParticipationResponse;
-import com.it52.eventservice.dto.EventResponseDto;
-import com.it52.eventservice.dto.EventUpdateDto;
+import com.it52.eventservice.dto.event.EventRequestDTO;
+import com.it52.eventservice.dto.registration.EventParticipationResponseDTO;
+import com.it52.eventservice.dto.event.EventResponseDTO;
+import com.it52.eventservice.dto.event.EventUpdateRequestDTO;
 import com.it52.eventservice.mapper.EventMapper;
 import com.it52.eventservice.model.*;
 import com.it52.eventservice.repository.*;
 import com.it52.eventservice.service.api.*;
 import com.it52.eventservice.util.ReflectionUtils;
 import io.minio.MinioClient;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.it52.eventservice.mapper.EventMapper.toDto;
@@ -40,23 +40,30 @@ public class EventServiceImpl implements EventService {
     private final EventRegistrationServiceClient eventRegistrationServiceClient;
     private final MinioConfig minioConfig;
     private final MinioService minioService;
+    private final AddressService addressService;
 
     @Override
-    public EventResponseDto createEvent(EventDto dto, MultipartFile image) {
+    public EventResponseDTO createEvent(EventRequestDTO dto, MultipartFile image) {
         Author author = authorService.getOrCreateAuthor();
+        Address address = addressService.getOrCreateAddress(dto.getCoords());
 
-        Event event = createAndSaveEvent(dto, author);
+        Event event = createAndSaveEvent(dto, author, address);
         eventImageService.uploadEventImageIfPresent(image, event);
         List<String> savedTagNames = taggingService.processTags(dto.getTags(), dto.getKind(), event);
 
-        EventResponseDto eventResponseDto = eventMapper.toDto(event, savedTagNames, author.getAuthorName(), null, minioClient);
+        EventResponseDTO eventResponseDto = eventMapper.toDto(event,
+                savedTagNames,
+                author.getAuthorName(),
+                null,
+                address,
+                minioClient);
         //participantService.saveOrganizer(event.getId(), author);
         registerOrganizerToEvent(event.getId());
         kafkaTemplate.send("event_created", eventResponseDto);
         return eventResponseDto;
     }
 
-    private EventParticipationResponse registerOrganizerToEvent(Long eventId) {
+    private EventParticipationResponseDTO registerOrganizerToEvent(Long eventId) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
         return eventRegistrationServiceClient.registrationOrganizer(token, eventId);
@@ -66,6 +73,7 @@ public class EventServiceImpl implements EventService {
     public void approveEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
         event.setPublished(true);
+        event.setPublishedAt(LocalDateTime.now());
         eventRepository.save(event);
     }
 
@@ -75,31 +83,33 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventResponseDto getEvent(String slug) {
+    public EventResponseDTO getEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
         return toDto(event,
                 taggingService.getTagsByEvent(event),
                 authorService.getAuthorName(event),
                 participantService.getParticipant(event.getId()),
+                event.getAddress(),
                 minioClient);
     }
 
     @Override
-    public EventResponseDto getEventById(Long id) {
+    public EventResponseDTO getEventById(Long id) {
         Event event = eventRepository.findById(id).get();
         return toDto(event,
                 taggingService.getTagsByEvent(event),
                 authorService.getAuthorName(event),
                 participantService.getParticipant(id),
+                event.getAddress(),
                 minioClient);
     }
 
     @Override
-    public EventResponseDto updateEvent(String slug, EventUpdateDto dto, MultipartFile image){
+    public EventResponseDTO updateEvent(String slug, EventUpdateRequestDTO dto, MultipartFile image) {
         Event event = eventRepository.findBySlug(slug);
 
         if (dto.getTags() != null) {
-            taggingService.processTags(dto.getTags(),dto.getKind(), event);
+            taggingService.processTags(dto.getTags(), dto.getKind(), event);
         }
 
         ReflectionUtils.mergeNonNullFields(dto, event);
@@ -114,13 +124,15 @@ public class EventServiceImpl implements EventService {
                 taggingService.getTagsByEvent(event),
                 authorService.getAuthorName(event),
                 participantService.getParticipant(event.getId()),
+                event.getAddress(),
                 minioClient);
     }
 
 
-    private Event createAndSaveEvent(EventDto dto, Author author) {
+    private Event createAndSaveEvent(EventRequestDTO dto, Author author, Address address) {
         Event event = eventMapper.create(dto);
         event.setAuthor(author);
+        event.setAddress(address);
         return eventRepository.save(event);
     }
 }

@@ -1,4 +1,4 @@
-package com.it52.eventservice.dto;
+package com.it52.eventservice.dto.event;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class EventUpdateDto {
+public class EventUpdateRequestDTO {
 
     private String title;
 
@@ -27,7 +27,9 @@ public class EventUpdateDto {
 
     private String kind;
 
-    private Long addressId;
+    @NotNull(message = "Координаты обязательны")
+    @Size(min = 2, max = 2, message = "Должны быть указаны широта и долгота")
+    private List<@NotNull Double> coords;
 
     private String addressComment;
 
