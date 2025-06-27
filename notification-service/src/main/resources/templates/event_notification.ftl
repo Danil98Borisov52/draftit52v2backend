@@ -79,6 +79,17 @@
             font-weight: bold;
         }
 
+        .edit-button {
+            background: #1a73e8;
+            color: white !important;
+            padding: 14px 28px;
+            font-size: 16px;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
         .footer {
             margin-top: 40px;
             text-align: center;
@@ -130,6 +141,7 @@
 
     <div class="button-container">
         <a class="approve-button" href="http://localhost:8081/api/events/${slug}/approve" target="_blank">✅ Одобрить мероприятие</a>
+        <a class="edit-button" href="http://localhost:8081/events/${slug}/edit" target="_blank" style="background:#1a73e8; margin-left: 15px;">✏️ Изменить мероприятие</a>
     </div>
 
     <div class="footer">

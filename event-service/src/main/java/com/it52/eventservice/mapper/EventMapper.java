@@ -19,6 +19,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -29,6 +31,8 @@ import static com.it52.eventservice.util.SlugUtil.createSlug;
 @RequiredArgsConstructor
 @Component
 public class EventMapper {
+
+    private static final String IMAGE_PROXY_BASE_URL = "http://localhost:8089";
 
     public Event create(EventDto dto) {
         return Event.builder()
@@ -70,43 +74,31 @@ public class EventMapper {
                 .slug(createSlug(event.getStartedAt(), event.getTitle()))
                 .address("MY HOME")
                 .addressComment(event.getAddressComment())
-                .titleImage(getTitleImage(event.getTitleImage(), minioClient))
+                .titleImage(getTitleImage(event.getTitleImage(), 600, 400))
                 .participants(eventParticipants)
                 .build();
     }
 
-    private static String getTitleImage(String titleImage, MinioClient minioClient) {
-        if (titleImage == null || titleImage.isBlank()) {
+    private static String getTitleImage(String originalImageUrl, Integer width, Integer height) {
+        if (originalImageUrl == null || originalImageUrl.isBlank()) {
             return null;
         }
-
         try {
-            String bucket = "event-images";
-            URI uri = URI.create(titleImage);
-            String path = uri.getPath();
+            StringBuilder sb = new StringBuilder();
+            sb.append(IMAGE_PROXY_BASE_URL).append("/").append(originalImageUrl);
 
-            String objectName = path.startsWith("/" + bucket + "/")
-                    ? path.substring(bucket.length() + 2)
-                    : path.substring(1);
-
-            try (InputStream imageStream = minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectName)
-                            .build())) {
-
-                BufferedImage image = ImageIO.read(imageStream);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "jpg", baos); // можно заменить на "png", если надо
-                byte[] imageBytes = baos.toByteArray();
-
-                return "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(imageBytes);
+            boolean hasParams = originalImageUrl.contains("?");
+            if (width != null) {
+                sb.append(hasParams ? "&" : "?").append("w=").append(width);
+                hasParams = true;
             }
-
+            if (height != null) {
+                sb.append(hasParams ? "&" : "?").append("h=").append(height);
+            }
+            return sb.toString();
         } catch (Exception e) {
-            // можно логировать, если нужно
-            System.err.println("Ошибка загрузки изображения из MinIO: " + e.getMessage());
-            return null;
+            System.err.println("Ошибка формирования URL для imageproxy: " + e.getMessage());
+            return originalImageUrl; // fallback
         }
     }
 

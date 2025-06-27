@@ -76,6 +76,24 @@ services:
     networks:
       - app-network
 
+  imageproxy:
+    image: willnorris/imageproxy:latest
+    container_name: imageproxy
+    ports:
+      - "8089:8089"
+    command:
+      - "-addr"
+      - ":8089"
+      - "-cache"
+      - "/tmp/cache"
+      - "-allowHosts"
+      - "minio"
+      - "-verbose"
+    volumes:
+      - ./cache:/tmp/cache
+    networks:
+      - app-network
+
   config-server:
     build:
       context: ./config-server

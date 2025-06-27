@@ -73,7 +73,7 @@ public class EventController {
         eventService.approveEvent(slug);
     }
 
-    @PutMapping(value = "/{slug}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{slug}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<EventResponseDto> updateEventBySlug(
             @PathVariable String slug,
