@@ -1,5 +1,7 @@
 package com.it52.eventservice.service.impl;
 
+import com.it52.eventservice.config.ImageProxyConfig;
+import com.it52.eventservice.config.MinioConfig;
 import com.it52.eventservice.dto.event.EventResponseDTO;
 import com.it52.eventservice.enums.EventKind;
 import com.it52.eventservice.enums.EventStatus;
@@ -29,6 +31,8 @@ public class EventQueryServiceImpl implements EventQueryService {
     private final AuthorService authorService;
     private final ParticipantService participantService;
     private final MinioClient minioClient;
+    private final ImageProxyConfig imageProxyConfig;
+    private final MinioConfig minioConfig;
 
     @Override
     public Page<EventResponseDTO> getPublicEvents(Pageable pageable, String kind, String status) {
@@ -45,7 +49,8 @@ public class EventQueryServiceImpl implements EventQueryService {
                         authorService.getAuthorName(event),
                         participantService.getParticipant(event.getId()),
                         event.getAddress(),
-                        minioClient));
+                        minioConfig,
+                        imageProxyConfig));
     }
 
     @Override
@@ -61,7 +66,8 @@ public class EventQueryServiceImpl implements EventQueryService {
                         authorService.getAuthorName(event),
                         participantService.getParticipant(event.getId()),
                         event.getAddress(),
-                        minioClient));
+                        minioConfig,
+                        imageProxyConfig));
     }
 
     private Page<Event> getEventByStatus(String status, Integer kindInt, Pageable pageable, boolean published) {

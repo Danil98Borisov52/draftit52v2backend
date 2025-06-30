@@ -1,6 +1,8 @@
 package com.it52.eventservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.it52.eventservice.config.ImageProxyConfig;
+import com.it52.eventservice.config.MinioConfig;
 import com.it52.eventservice.dto.registration.ParticipantDto;
 import com.it52.eventservice.dto.user.UserChangeRequestDTO;
 import com.it52.eventservice.model.EventParticipant;
@@ -21,7 +23,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     private static final Logger logger = LoggerFactory.getLogger(ParticipantServiceImpl.class);
     private final ObjectMapper objectMapper;
     private final ParticipantRepository participantRepository;
-
+    private final MinioConfig minioConfig;
+    private final ImageProxyConfig imageProxyConfig;
 
     @Override
     @KafkaListener(topics = "user_registered_to_event", groupId = "event-group")
@@ -70,6 +73,42 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<EventParticipant> getParticipant(Long eventId) {
-        return participantRepository.findAllByEventId(eventId);
+        List<EventParticipant> participants = participantRepository.findAllByEventId(eventId);
+
+        for (EventParticipant participant : participants) {
+            String originalImageUrl = participant.getAvatarImage();
+            String titleImage = getAvatarImage(originalImageUrl, 300, 200, minioConfig, imageProxyConfig); // размеры задаются по нужде
+            participant.setAvatarImage(titleImage);
+        }
+        return participants;
+    }
+
+    private static String getAvatarImage(String originalImageUrl, Integer width, Integer height, MinioConfig minioConfig, ImageProxyConfig imageProxyConfig) {
+        if (originalImageUrl == null || originalImageUrl.isBlank()) {
+            return null;
+        }
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append(imageProxyConfig.getBaseUrl())
+                    .append("/")
+                    .append(minioConfig.getUrl())
+                    .append("/")
+                    .append(minioConfig.getBucketUser())
+                    .append("/")
+                    .append(originalImageUrl);
+
+            boolean hasParams = originalImageUrl.contains("?");
+            if (width != null) {
+                sb.append(hasParams ? "&" : "?").append("w=").append(width);
+                hasParams = true;
+            }
+            if (height != null) {
+                sb.append(hasParams ? "&" : "?").append("h=").append(height);
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            System.err.println("Ошибка формирования URL для imageproxy: " + e.getMessage());
+            return originalImageUrl;
+        }
     }
 }

@@ -12,7 +12,12 @@ minio:
   url: http://minio:9000
   access-key: minio
   secret-key: minio123
-  bucket: event-images
+  bucketUser: user-avatars
+  bucketEvent: event-images
+
+image:
+  proxy:
+    base-url: http://localhost:8089
 
 spring:
   application:

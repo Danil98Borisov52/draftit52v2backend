@@ -27,12 +27,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 public interface UserService {
-    User getUserBySub(String sub);
+    UserDTO getUserBySub(String sub);
     String getCurrentUserSub();
     User createUser(OAuth2User oAuth2User);
-    void uploadAvatarIfPresent(MultipartFile image, User user);
-    void updateUserFields(User existingUser, UserUpdateDTO userUpdateDTO);
-    String getAvatarBase64(String avatarPath);
     User saveUser(User user);
-    void deleteUser(User user);
+    void deleteUser(String sub);
+    UserDTO updateUser(String currentUserSub, UserUpdateDTO userUpdateDTO, MultipartFile avatarImage);
 }

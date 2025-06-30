@@ -1,12 +1,13 @@
 package com.it52.user.service.impl;
 
+import com.it52.user.dto.UserDTO;
 import com.it52.user.dto.UserUpdateDTO;
 import com.it52.user.exception.UserNotFoundException;
 import com.it52.user.kafka.KafkaProducer;
 import com.it52.user.model.User;
 import com.it52.user.repository.UserRepository;
-import com.it52.user.service.api.KeycloakService;
-import com.it52.user.service.api.UserService;
+import com.it52.user.service.api.*;
+import com.it52.user.utils.UserMapper;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -19,15 +20,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
-import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -35,14 +31,19 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final KafkaProducer kafkaProducer;
     private final KeycloakService keycloakService;
-    private final MinioClient minioClient;
+    private final UserMapper userMapper;
+    private final UserImageService userImageService;
+
     @Value("${minio.bucket}")
     private String bucket;
 
     @Override
-    public User getUserBySub(String sub) {
-        return userRepository.findBySub(sub)
+    public UserDTO getUserBySub(String sub) {
+        User user = userRepository.findBySub(sub)
                 .orElseThrow(() -> new UserNotFoundException(Long.parseLong(sub)));
+        ;
+        UserDTO userDTO = userMapper.toDto(user);
+        return userDTO;
     }
 
     @Override
@@ -104,59 +105,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void uploadAvatarIfPresent(MultipartFile image, User user) {
-        if (image == null || image.isEmpty()) return;
-
-        try {
-            String extension = Objects.requireNonNull(image.getOriginalFilename())
-                    .substring(image.getOriginalFilename().lastIndexOf('.'));
-            String filename = UUID.randomUUID() + extension;
-
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(filename)
-                            .stream(image.getInputStream(), image.getSize(), -1)
-                            .contentType(image.getContentType())
-                            .build());
-
-            user.setAvatarImage("/" + bucket + "/" + filename); // путь к объекту
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка при загрузке аватарки", e);
-        }
+    public User saveUser(User user) {
+        kafkaProducer.sendUserChanges(user);
+        return userRepository.save(user);
     }
 
     @Override
-    public String getAvatarBase64(String avatarPath) {
-        if (avatarPath == null || avatarPath.isBlank()) return null;
-
-        try {
-            String objectName = avatarPath.startsWith("/" + bucket + "/")
-                    ? avatarPath.substring(bucket.length() + 2)
-                    : avatarPath.substring(1);
-
-            try (InputStream imageStream = minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectName)
-                            .build())) {
-
-                BufferedImage image = ImageIO.read(imageStream);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "jpg", baos); // или png
-                byte[] bytes = baos.toByteArray();
-
-                return "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Ошибка получения аватарки: " + e.getMessage());
-            return null;
-        }
+    public void deleteUser(String sub) {
+        User user = userRepository.findBySub(sub)
+                .orElseThrow(() -> new UserNotFoundException(Long.parseLong(sub)));
+        keycloakService.deleteUserInKeycloak(sub);
+        userRepository.delete(user);
     }
 
     @Override
-    public void updateUserFields(User existingUser, UserUpdateDTO userUpdateDTO){
+    public UserDTO updateUser(String currentUserSub, UserUpdateDTO userUpdateDTO, MultipartFile avatarImage) {
+        User existingUser = userRepository.findBySub(currentUserSub)
+                .orElseThrow(() -> new UserNotFoundException(Long.parseLong(currentUserSub)));
         for (Field field : UserUpdateDTO.class.getDeclaredFields()) {
             field.setAccessible(true);
             try {
@@ -170,23 +135,16 @@ public class UserServiceImpl implements UserService {
                 e.printStackTrace();
             }
         }
+
+        userImageService.uploadUserImageIfPresent(avatarImage, existingUser);
+
+        return userMapper.toDto(saveUser(existingUser));
     }
+
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    @Override
-    public User saveUser(User user) {
-        kafkaProducer.sendUserChanges(user);
-        return userRepository.save(user);
-    }
-
-    @Override
-    public void deleteUser(User user) {
-        keycloakService.deleteUserInKeycloak(user.getSub());
-        userRepository.delete(user);
     }
 }

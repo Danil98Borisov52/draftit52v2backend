@@ -14,6 +14,9 @@ minio:
   access-key: minio
   secret-key: minio123
   bucket: user-avatars
+image:
+  proxy:
+    base-url: http://localhost:8089
 
 keycloak:
   auth-server-url: http://keycloak:8080
@@ -75,6 +78,7 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
     org.springframework.security.oauth2.client: TRACE
+    com.it52.user: DEBUG
 
 eventregistration:
   service:

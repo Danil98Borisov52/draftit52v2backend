@@ -1,5 +1,7 @@
 package com.it52.eventservice.mapper;
 
+import com.it52.eventservice.config.ImageProxyConfig;
+import com.it52.eventservice.config.MinioConfig;
 import com.it52.eventservice.dto.event.AddressDTO;
 import com.it52.eventservice.dto.event.EventRequestDTO;
 import com.it52.eventservice.dto.event.EventResponseDTO;
@@ -23,8 +25,6 @@ import static com.it52.eventservice.util.SlugUtil.createSlug;
 @Component
 public class EventMapper {
 
-    private static final String IMAGE_PROXY_BASE_URL = "http://localhost:8089";
-
     public Event create(EventRequestDTO dto) {
         return Event.builder()
                 .title(dto.getTitle())
@@ -40,7 +40,9 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventResponseDTO toDto(Event event, List<String> tags, String authorName, List<EventParticipant> eventParticipants, Address address, MinioClient minioClient) {
+    public static EventResponseDTO toDto(Event event, List<String> tags,
+                                         String authorName, List<EventParticipant> eventParticipants,
+                                         Address address, MinioConfig minioConfig, ImageProxyConfig imageProxyConfig) {
         return EventResponseDTO.builder()
                 .title(event.getTitle())
                 .description(event.getDescription())
@@ -61,7 +63,7 @@ public class EventMapper {
                 .externalUrl(event.getForeignLink())
                 .address(convertAddress(address))
                 .addressComment(event.getAddressComment())
-                .titleImage(getTitleImage(event.getTitleImage(), 600, 400))
+                .titleImage(getTitleImage(event.getTitleImage(), 600, 400, minioConfig, imageProxyConfig))
                 .participants(eventParticipants)
                 .build();
     }
@@ -79,13 +81,19 @@ public class EventMapper {
         return dto;
     }
 
-    private static String getTitleImage(String originalImageUrl, Integer width, Integer height) {
+    private static String getTitleImage(String originalImageUrl, Integer width, Integer height, MinioConfig minioConfig, ImageProxyConfig imageProxyConfig) {
         if (originalImageUrl == null || originalImageUrl.isBlank()) {
             return null;
         }
         try {
             StringBuilder sb = new StringBuilder();
-            sb.append(IMAGE_PROXY_BASE_URL).append("/").append(originalImageUrl);
+            sb.append(imageProxyConfig.getBaseUrl())
+                    .append("/")
+                    .append(minioConfig.getUrl())
+                    .append("/")
+                    .append(minioConfig.getBucketEvent())
+                    .append("/")
+                    .append(originalImageUrl);
 
             boolean hasParams = originalImageUrl.contains("?");
             if (width != null) {

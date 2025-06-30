@@ -50,17 +50,6 @@ public class EventParticipation {
     @Column(name = "anonymous")
     private boolean anonymous;
 
-    public EventParticipation(String sub, Long eventId) {
-        this.sub = sub;
-        this.eventId = eventId;
-    }
-    public EventParticipation(String sub, Long eventId, String avatarImage, boolean organizer) {
-        this.sub = sub;
-        this.eventId = eventId;
-        this.avatarImage = avatarImage;
-        this.organizer = organizer;
-    }
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

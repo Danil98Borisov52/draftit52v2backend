@@ -14,7 +14,6 @@ public class UserImageServiceImpl implements UserImageService {
     private final UserRepository userRepository;
     private final MinioService minioService;
 
-
     @Override
     public void uploadUserImageIfPresent(MultipartFile image, User user) {
         if (image != null && !image.isEmpty()) {

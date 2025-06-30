@@ -1,5 +1,6 @@
 package com.it52.eventservice.service.impl;
 
+import com.it52.eventservice.config.ImageProxyConfig;
 import com.it52.eventservice.config.MinioConfig;
 import com.it52.eventservice.dto.event.EventRequestDTO;
 import com.it52.eventservice.dto.registration.EventParticipationResponseDTO;
@@ -41,6 +42,7 @@ public class EventServiceImpl implements EventService {
     private final MinioConfig minioConfig;
     private final MinioService minioService;
     private final AddressService addressService;
+    private final ImageProxyConfig imageProxyConfig;
 
     @Override
     public EventResponseDTO createEvent(EventRequestDTO dto, MultipartFile image) {
@@ -50,15 +52,14 @@ public class EventServiceImpl implements EventService {
         Event event = createAndSaveEvent(dto, author, address);
         eventImageService.uploadEventImageIfPresent(image, event);
         List<String> savedTagNames = taggingService.processTags(dto.getTags(), dto.getKind(), event);
-
+        registerOrganizerToEvent(event.getId());
         EventResponseDTO eventResponseDto = eventMapper.toDto(event,
                 savedTagNames,
                 author.getAuthorName(),
-                null,
+                participantService.getParticipant(event.getId()),
                 address,
-                minioClient);
-        //participantService.saveOrganizer(event.getId(), author);
-        registerOrganizerToEvent(event.getId());
+                minioConfig,
+                imageProxyConfig);
         kafkaTemplate.send("event_created", eventResponseDto);
         return eventResponseDto;
     }
@@ -90,7 +91,8 @@ public class EventServiceImpl implements EventService {
                 authorService.getAuthorName(event),
                 participantService.getParticipant(event.getId()),
                 event.getAddress(),
-                minioClient);
+                minioConfig,
+                imageProxyConfig);
     }
 
     @Override
@@ -101,7 +103,8 @@ public class EventServiceImpl implements EventService {
                 authorService.getAuthorName(event),
                 participantService.getParticipant(id),
                 event.getAddress(),
-                minioClient);
+                minioConfig,
+                imageProxyConfig);
     }
 
     @Override
@@ -125,7 +128,8 @@ public class EventServiceImpl implements EventService {
                 authorService.getAuthorName(event),
                 participantService.getParticipant(event.getId()),
                 event.getAddress(),
-                minioClient);
+                minioConfig,
+                imageProxyConfig);
     }
 
 
