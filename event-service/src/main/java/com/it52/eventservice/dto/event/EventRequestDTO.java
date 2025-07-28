@@ -1,5 +1,6 @@
 package com.it52.eventservice.dto.event;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -16,6 +17,7 @@ public class EventRequestDTO {
     @NotBlank(message = "Название обязательно")
     private String title;
 
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
     @NotNull(message = "Дата начала обязательна")
     private LocalDateTime startedAt;
 

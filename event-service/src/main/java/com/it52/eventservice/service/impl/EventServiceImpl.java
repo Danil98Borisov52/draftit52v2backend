@@ -51,6 +51,9 @@ public class EventServiceImpl implements EventService {
 
         Event event = createAndSaveEvent(dto, author, address);
         eventImageService.uploadEventImageIfPresent(image, event);
+        if (dto.getTags()==null){
+            new IllegalArgumentException("TAG = " + dto.getTags());
+        }
         List<String> savedTagNames = taggingService.processTags(dto.getTags(), dto.getKind(), event);
         registerOrganizerToEvent(event.getId());
         EventResponseDTO eventResponseDto = eventMapper.toDto(event,

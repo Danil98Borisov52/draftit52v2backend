@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.it52.eventservice.enums.EventPriceType.FREE;
 import static com.it52.eventservice.util.SlugUtil.createSlug;
 
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class EventMapper {
                 .foreignLink(dto.getForeignLink())
                 .kind(EnumConverter.toOrdinal(EventKind.class, dto.getKind()))
                 .addressComment(dto.getAddressComment())
-                .typePriceId(EnumConverter.toOrdinal(EventPriceType.class, dto.getTypePrice()))
+                .typePriceId(EnumConverter.toOrdinal(EventPriceType.class, dto.getTypePrice() == null ? "FREE": dto.getTypePrice()))
                 .published(false)
                 .build();
     }

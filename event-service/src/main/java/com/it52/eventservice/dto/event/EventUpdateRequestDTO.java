@@ -27,7 +27,6 @@ public class EventUpdateRequestDTO {
 
     private String kind;
 
-    @NotNull(message = "Координаты обязательны")
     @Size(min = 2, max = 2, message = "Должны быть указаны широта и долгота")
     private List<@NotNull Double> coords;
 
