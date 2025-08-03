@@ -18,10 +18,20 @@ public class EventImageServiceImpl implements EventImageService {
 
     @Override
     public void uploadEventImageIfPresent(MultipartFile image, Event event) {
-        if (image != null && !image.isEmpty()) {
-            String imageUrl = minioService.uploadFile(image, event.getId().toString());
-            event.setTitleImage(imageUrl);
-            eventRepository.save(event);
+        if (image == null || image.isEmpty()) {
+            return;
         }
+
+        String imageUrl = uploadImageOrThrow(image, event.getId().toString());
+        event.setTitleImage(imageUrl);
+        eventRepository.save(event);
+    }
+
+    private String uploadImageOrThrow(MultipartFile image, String objectName) {
+        String imageUrl = minioService.uploadFile(image, objectName);
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new IllegalStateException("Не удалось загрузить изображение для объекта " + objectName);
+        }
+        return imageUrl;
     }
 }

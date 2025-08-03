@@ -27,7 +27,7 @@ public class SecurityUtils {
     public static String getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
-            throw new IllegalStateException("No authentication found in security context.");
+            throw new IllegalStateException("Пользователь не аутентифицирован или токен недоступен");
         }
 
         Object principal = authentication.getPrincipal();
@@ -35,6 +35,14 @@ public class SecurityUtils {
             return jwt.getClaimAsString("email");
         }
 
-        throw new IllegalStateException("Principal is not of type Jwt");
+        throw new IllegalStateException("Участин с другим токеном, не JWT");
+    }
+
+    public static String getBearerToken() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication instanceof JwtAuthenticationToken jwtAuth)) {
+            throw new IllegalStateException("Пользователь не аутентифицирован или токен недоступен");
+        }
+        return jwtAuth.getToken().getTokenValue();
     }
 }

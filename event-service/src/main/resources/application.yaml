@@ -18,10 +18,18 @@ minio:
 image:
   proxy:
     base-url: http://localhost:8089
+jwt:
+  secret: c29tZXN1cGVyc2VjdXJla2V5Zm9yamF3dHRva2VuYmFzZTY0IQ==
 
 spring:
   application:
     name: event-service
+  codec:
+    max-in-memory-size: 10MB
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
   kafka:
     bootstrap-servers: kafka:9092
     producer:

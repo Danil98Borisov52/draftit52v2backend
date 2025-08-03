@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 public class ReflectionUtils {
     public static void mergeNonNullFields(Object source, Object target) {
         if (source == null || target == null) {
-            throw new IllegalArgumentException("Source and target must not be null");
+            throw new IllegalArgumentException("Обшика при мапинге");
         }
 
         Field[] fields = source.getClass().getDeclaredFields();
@@ -24,7 +24,7 @@ public class ReflectionUtils {
                 }
 
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to merge field: " + sourceField.getName(), e);
+                throw new RuntimeException("Ошибка при смерживании поля: " + sourceField.getName(), e);
             }
         }
     }

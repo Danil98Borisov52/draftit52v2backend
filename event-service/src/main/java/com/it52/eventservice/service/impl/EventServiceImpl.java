@@ -6,12 +6,14 @@ import com.it52.eventservice.dto.event.EventRequestDTO;
 import com.it52.eventservice.dto.registration.EventParticipationResponseDTO;
 import com.it52.eventservice.dto.event.EventResponseDTO;
 import com.it52.eventservice.dto.event.EventUpdateRequestDTO;
+import com.it52.eventservice.exception.EventNotFoundException;
 import com.it52.eventservice.mapper.EventMapper;
 import com.it52.eventservice.model.*;
 import com.it52.eventservice.repository.*;
 import com.it52.eventservice.service.api.*;
 import com.it52.eventservice.util.ReflectionUtils;
 import io.minio.MinioClient;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,8 +53,9 @@ public class EventServiceImpl implements EventService {
 
         Event event = createAndSaveEvent(dto, author, address);
         eventImageService.uploadEventImageIfPresent(image, event);
-        if (dto.getTags()==null){
-            new IllegalArgumentException("TAG = " + dto.getTags());
+        List<String> tags = dto.getTags();
+        if (tags == null || tags.isEmpty()) {
+            throw new BadRequestException("Список тегов не может быть пустым.");
         }
         List<String> savedTagNames = taggingService.processTags(dto.getTags(), dto.getKind(), event);
         registerOrganizerToEvent(event.getId());
@@ -69,6 +72,9 @@ public class EventServiceImpl implements EventService {
 
     private EventParticipationResponseDTO registerOrganizerToEvent(Long eventId) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication instanceof JwtAuthenticationToken jwtAuth)) {
+            throw new IllegalStateException("Пользователь не аутентифицирован или токен недоступен");
+        }
         String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
         return eventRegistrationServiceClient.registrationOrganizer(token, eventId);
     }
@@ -76,6 +82,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public void approveEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
+        validateEvent(event, slug);
         event.setPublished(true);
         event.setPublishedAt(LocalDateTime.now());
         eventRepository.save(event);
@@ -83,12 +90,15 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void deleteEvent(String slug) {
+        Event event = eventRepository.findBySlug(slug);
+        validateEvent(event, slug);
         eventRepository.deleteBySlug(slug);
     }
 
     @Override
     public EventResponseDTO getEvent(String slug) {
         Event event = eventRepository.findBySlug(slug);
+        validateEvent(event, slug);
         return toDto(event,
                 taggingService.getTagsByEvent(event),
                 authorService.getAuthorName(event),
@@ -101,6 +111,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventResponseDTO getEventById(Long id) {
         Event event = eventRepository.findById(id).get();
+        if (event == null) {
+            throw new EventNotFoundException("Событие с id '" + id + "' не найдено.");
+        }
         return toDto(event,
                 taggingService.getTagsByEvent(event),
                 authorService.getAuthorName(event),
@@ -113,7 +126,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventResponseDTO updateEvent(String slug, EventUpdateRequestDTO dto, MultipartFile image) {
         Event event = eventRepository.findBySlug(slug);
-
+        validateEvent(event, slug);
         if (dto.getTags() != null) {
             taggingService.processTags(dto.getTags(), dto.getKind(), event);
         }
@@ -141,5 +154,11 @@ public class EventServiceImpl implements EventService {
         event.setAuthor(author);
         event.setAddress(address);
         return eventRepository.save(event);
+    }
+
+    private void validateEvent(Event event, String slug) {
+        if (event == null) {
+            throw new EventNotFoundException("Событие с slug '" + slug + "' не найдено.");
+        }
     }
 }

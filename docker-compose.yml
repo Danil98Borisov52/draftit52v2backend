@@ -171,6 +171,7 @@ services:
     container_name: user-service
     ports:
       - "8085:8085"
+      - "5005:5005"  # проброс порта для удалённого дебага
     depends_on:
       - eureka-server
       - postgres
@@ -181,6 +182,8 @@ services:
       SPRING_DATASOURCE_USERNAME: dborisov
       SPRING_DATASOURCE_PASSWORD: dborisov
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Можно добавить флаг для дебага, если ты его используешь в Dockerfile или entrypoint
+      # DEBUG=true
     networks:
       - app-network
 
@@ -226,6 +229,30 @@ services:
      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
      SPRING_DATASOURCE_USERNAME: postgres
      SPRING_DATASOURCE_PASSWORD: user
+    networks:
+      - app-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8099:8099"
+    depends_on:
+      - eureka-server
+      - config-server
+      - keycloak
+      - postgres
+      - kafka
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8071
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/it52_mbase501
+      SPRING_DATASOURCE_USERNAME: dborisov
+      SPRING_DATASOURCE_PASSWORD: dborisov
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - app-network
 

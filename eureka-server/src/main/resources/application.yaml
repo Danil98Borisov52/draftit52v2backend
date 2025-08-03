@@ -9,5 +9,7 @@ eureka:
   server:
     eviction-interval-timer-in-ms: 10000
   client:
-    service-url:
-      defaultZone: http://eureka-server:8070/eureka
+    register-with-eureka: false
+    fetch-registry: false
+server:
+  port: 8761

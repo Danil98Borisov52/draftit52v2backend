@@ -5,6 +5,7 @@ import com.it52.eventservice.dto.event.EventResponseDTO;
 import com.it52.eventservice.dto.event.EventUpdateRequestDTO;
 import com.it52.eventservice.service.api.EventQueryService;
 import com.it52.eventservice.service.api.EventService;
+import com.it52.eventservice.util.RequireRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -58,6 +59,7 @@ public class EventController {
     }
 
     @GetMapping("/moderation")
+    @RequireRole(1)
     public Page<EventResponseDTO> getPending(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

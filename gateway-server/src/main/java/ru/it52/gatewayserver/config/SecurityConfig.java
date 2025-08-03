@@ -1,85 +1,102 @@
 package ru.it52.gatewayserver.config;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
-import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+
+import java.util.Base64;
 import java.util.List;
 
 @Configuration
 @EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 public class SecurityConfig {
 
-    private final ReactiveClientRegistrationRepository registrationRepository;
+    @Value("${jwt.secret}")
+    private String secretEncoded;
 
-    public SecurityConfig(ReactiveClientRegistrationRepository registrationRepository) {
-        this.registrationRepository = registrationRepository;
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretEncoded));
     }
 
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http
-                .csrf().disable()
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(jwtAuthenticationManager());
+        authenticationWebFilter.setServerAuthenticationConverter(bearerTokenConverter());
+
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/realms/**").permitAll()
-                        .pathMatchers("/api/events/public/**").permitAll()
+                        .pathMatchers("/api/events/public/**", "/api/auth/**").permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2Login()
-                .and()
-                .logout()
-                .logoutSuccessHandler(logoutSuccessHandler())
-                .and()
-                .oauth2ResourceServer()
-                .jwt(jwt -> jwt
-                        .jwtDecoder(jwtDecoder())
-                );
-        return http.build();
-    }
-
-    @Bean
-    public ServerLogoutSuccessHandler logoutSuccessHandler() {
-        RedirectServerLogoutSuccessHandler successHandler = new RedirectServerLogoutSuccessHandler();
-        successHandler.setLogoutSuccessUrl(URI.create(
-                "http://localhost:8081/oauth2/authorization/keycloak"));
-        return successHandler;
-    }
-
-    @Bean
-    public ReactiveJwtDecoder jwtDecoder() {
-        String jwkSetUri = "http://keycloak:8080/realms/it52/protocol/openid-connect/certs";
-        WebClient webClient = WebClient.builder().build();
-        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri)
-                .webClient(webClient)
+                .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
-        return token -> jwtDecoder.decode(token)
-                .onErrorResume(e -> {
-                    System.err.println("Ошибка декодирования JWT: " + e.getMessage());
-                    return Mono.error(e);
-                });
     }
-    @Bean
-    public JwtAuthenticationConverter jwtAuthConverter() {
-        return new JwtAuthenticationConverter();
+
+    private ServerAuthenticationConverter bearerTokenConverter() {
+        return exchange -> {
+            String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                Authentication auth = new UsernamePasswordAuthenticationToken(null, token);
+                return Mono.just(auth);
+            }
+            return Mono.empty();
+        };
+    }
+
+    public ReactiveAuthenticationManager jwtAuthenticationManager() {
+        return authentication -> {
+            String token = authentication.getCredentials().toString();
+            try {
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(secretKey)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+                String username = claims.getSubject();
+                Integer role = claims.get("role", Integer.class);  // <-- вытаскиваем роль из JWT
+
+                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+
+                AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, token, authorities);
+
+                auth.setDetails(role);
+
+                return Mono.just(auth);
+            } catch (JwtException e) {
+                return Mono.error(new RuntimeException("Invalid JWT Token: " + e.getMessage()));
+            }
+        };
     }
 
     @Bean

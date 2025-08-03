@@ -9,8 +9,19 @@ eureka:
 spring:
   application:
     name: gateway-server
+  codec:
+    max-in-memory-size: 10MB
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
   cloud:
     gateway:
+      httpclient:
+        max-initial-line-length: 16384
+        max-header-size: 16384
+        max-chunk-size: 20971520 # 20MB
+        max-in-memory-size: 20971520 # 20MB
       discovery:
         locator:
           enabled: true
@@ -18,10 +29,10 @@ spring:
       default-filters:
         - TokenRelay=
       routes:
-        - id: keycloak
-          uri: http://keycloak:8080
+        - id: auth-service
+          uri: lb://auth-service
           predicates:
-            - Path=/realms/**
+            - Path=/api/auth/**
           filters:
             - TokenRelay=
         - id: user-service
@@ -46,31 +57,17 @@ spring:
           uri: lb://event-registration-service
           predicates:
             - Path=/api/participations/**
-          filters:
-            - TokenRelay=
-  security:
-    oauth2:
-      client:
-        registration:
-          keycloak:
-            client-id: it52-client
-            client-secret: vHgP94O0lsGldQHfcHreP02y4X0PsRKQ
-            scope: openid
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          keycloak:
-            issuer-uri: http://keycloak:8080/realms/it52
-            authorization-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/auth
-            token-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/token
-            user-info-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/userinfo
-            jwk-set-uri: http://keycloak:8080/realms/it52/protocol/openid-connect/certs
-            user-name-attribute: preferred_username
+          #filters:
+          #  - TokenRelay=
 logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
     org.springframework.security.oauth2.client: TRACE
+    org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
+jwt:
+  secret: c29tZXN1cGVyc2VjdXJla2V5Zm9yamF3dHRva2VuYmFzZTY0IQ==
 
 server:
   port: 8081

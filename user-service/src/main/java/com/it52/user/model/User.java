@@ -62,6 +62,42 @@ public class User {
     @Column(name = "anonymous")
     private boolean anonymous;
 
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_sent_at")
+    private LocalDateTime resetPasswordSentAt;
+
+    @Column(name = "remember_created_at")
+    private LocalDateTime rememberCreatedAt;
+
+    @Column(name = "sign_in_count")
+    private Integer signInCount = 0;
+
+    @Column(name = "current_sign_in_at")
+    private LocalDateTime currentSignInAt;
+
+    @Column(name = "last_sign_in_at")
+    private LocalDateTime lastSignInAt;
+
+    @Column(name = "current_sign_in_ip")
+    private String currentSignInIp;
+
+    @Column(name = "last_sign_in_ip")
+    private String lastSignInIp;
+
+    @Column(name = "confirmation_token")
+    private String confirmationToken;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
+    @Column(name = "confirmation_sent_at")
+    private LocalDateTime confirmationSentAt;
+
+    @Column(name = "unconfirmed_email")
+    private String unconfirmedEmail;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

@@ -30,23 +30,6 @@ public class AuthorServiceImpl implements AuthorService {
                 ));
     }
 
-/*    public String getAvatar() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication instanceof JwtAuthenticationToken) {
-            String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
-            String sub = ((JwtAuthenticationToken) authentication).getToken().getSubject();
-
-            var user = eventRegistrationServiceClient.getBySub(token, sub);
-            if (user == null) {
-                throw new IllegalArgumentException("User does not exist");
-            }
-            return user.getAvatarImage();
-        } else {
-            throw new IllegalStateException("No JWT authentication found in context");
-        }
-    }*/
-
     @Override
     public String getAuthorName(Event event) {
         if (event.getAuthor() == null) {
