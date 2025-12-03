@@ -23,6 +23,12 @@ public class UserRegistration {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
+    @Column(name = "telegram_id")
+    private Long telegramId;
+
+    @Column(name = "telegram_username")
+    private String telegramUsername;
+
     @Column(nullable = false, length = 255)
     private String password;
 

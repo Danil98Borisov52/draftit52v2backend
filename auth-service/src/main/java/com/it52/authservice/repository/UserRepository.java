@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserRegistration, Long> {
     Optional<UserRegistration> findByUsername(String username);
+    Optional<UserRegistration> findByTelegramUsername(String telegramUsername);
 }

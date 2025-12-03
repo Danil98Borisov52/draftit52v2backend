@@ -10,6 +10,7 @@ COPY --from=build /app/target/auth-service-*.jar app.jar
 
 # Указываем порт, на котором будет работать приложение
 EXPOSE 8099
+EXPOSE 5007
 
-# Запуск приложения
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Запуск приложения с включенным удалённым дебагом на порту 5005
+ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007", "-jar", "app.jar"]

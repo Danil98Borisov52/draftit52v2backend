@@ -43,6 +43,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_schema: public
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 jwt:
   secret: c29tZXN1cGVyc2VjdXJla2V5Zm9yamF3dHRva2VuYmFzZTY0IQ==

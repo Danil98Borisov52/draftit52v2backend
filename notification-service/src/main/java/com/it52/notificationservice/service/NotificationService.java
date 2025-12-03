@@ -2,6 +2,7 @@ package com.it52.notificationservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.it52.notificationservice.dto.EventDto;
+import com.it52.notificationservice.dto.OtpDto;
 import com.it52.notificationservice.dto.UserDto;
 import com.it52.notificationservice.dto.UserRegisteredToEventDto;
 import com.it52.notificationservice.util.MailService;
@@ -189,6 +190,31 @@ public class NotificationService {
 
         } catch (Exception e) {
             logger.error("❌ Ошибка обработки события регистрации: {}", e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(topics = "otp-email-topic", groupId = "notification-group")
+    public void listenOtp(String message) {
+        try {
+            OtpDto dto = objectMapper.readValue(message, OtpDto.class);
+
+            String subject = "Ваш OTP код";
+            Map<String, Object> model = Map.of(
+                    "otp", dto.getOtp(),
+                    "expiresAt", formatDate(dto.getExpiresAt())
+            );
+
+            Template template = freemarkerConfig.getTemplate("otp_email.ftl");
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
+            String htmlBody = writer.toString();
+
+            logger.info("📨 Отправка OTP на email: {}", dto.getEmail());
+            mailService.sendHtmlEmail(dto.getEmail(), subject, htmlBody);
+            logger.info("✅ OTP отправлен успешно");
+
+        } catch (Exception e) {
+            logger.error("❌ Ошибка отправки OTP: {}", e.getMessage(), e);
         }
     }
 

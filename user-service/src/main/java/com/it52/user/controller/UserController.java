@@ -3,6 +3,7 @@ package com.it52.user.controller;
 import com.it52.user.dto.UserDTO;
 import com.it52.user.dto.UserUpdateDTO;
 import com.it52.user.service.api.UserService;
+import com.it52.user.utils.RequireRole;
 import com.it52.user.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -54,7 +55,7 @@ public class UserController {
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
-
+    @RequireRole(1)
     @DeleteMapping("/delete/{sub}")
     public ResponseEntity<Void> deleteUserBySub(@PathVariable String sub) {
         userService.deleteUser(sub);

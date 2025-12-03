@@ -1,6 +1,8 @@
 package com.it52.authservice.controller;
 
 import com.it52.authservice.dto.LoginRequest;
+import com.it52.authservice.dto.OtpRequest;
+import com.it52.authservice.dto.OtpVerifyRequest;
 import com.it52.authservice.dto.RegisterRequest;
 import com.it52.authservice.service.AuthenticationService;
 import com.it52.authservice.service.JwtService;
@@ -63,6 +65,38 @@ public class AuthController {
             return ResponseEntity.ok("User registered successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/otp/request")
+    public ResponseEntity<String> requestOtp(@RequestBody OtpRequest request) {
+        try {
+            authenticationService.sendOtp(request.getUsername());
+            return ResponseEntity.ok("OTP sent successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/otp/verify")
+    public ResponseEntity<?> verifyOtp(@RequestBody OtpVerifyRequest request, HttpServletResponse response) {
+        try {
+            String token = authenticationService.verifyOtpAndLogin(request.getUsername(), request.getCode());
+
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    request.getUsername(),
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .body(Map.of("token", token));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid code or expired");
         }
     }
 }

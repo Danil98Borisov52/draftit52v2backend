@@ -10,6 +10,7 @@ COPY --from=build /app/target/event-service-*.jar app.jar
 
 # Указываем порт, на котором будет работать приложение
 EXPOSE 8086
+EXPOSE 5008
 
 # Запуск приложения
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007", "-jar", "app.jar"]

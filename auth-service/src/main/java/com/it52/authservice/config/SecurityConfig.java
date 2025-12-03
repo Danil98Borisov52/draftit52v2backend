@@ -15,7 +15,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF можно включить при необходимости
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // 👈 Разрешаем доступ
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/otp/request", "/api/auth/otp/verify").permitAll() // 👈 Разрешаем доступ
                         .anyRequest().authenticated()
                 );
         return http.build();

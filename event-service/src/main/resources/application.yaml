@@ -8,6 +8,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
+
 minio:
   url: http://minio:9000
   access-key: minio

@@ -2,7 +2,7 @@
 
 echo "Creating Kafka topics..."
 
-KAFKA_BIN="/opt/bitnami/kafka/bin/kafka-topics.sh"
+KAFKA_BIN="/usr/bin/start-kafka.sh"
 BROKER="kafka:9092"
 
 $KAFKA_BIN --crete --if-not-exists --bootstrap-server $BROKER --replication-factor 1 --partitions 1 --topic event_created

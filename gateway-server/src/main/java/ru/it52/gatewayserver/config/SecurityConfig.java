@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/events/public/**", "/api/auth/**").permitAll()
+                        .pathMatchers("/api/events/public", "/api/auth/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -76,6 +76,9 @@ public class SecurityConfig {
     public ReactiveAuthenticationManager jwtAuthenticationManager() {
         return authentication -> {
             String token = authentication.getCredentials().toString();
+            if (token == null || token.isBlank()) {
+                return Mono.empty();
+            }
             try {
                 Claims claims = Jwts.parserBuilder()
                         .setSigningKey(secretKey)
@@ -93,7 +96,7 @@ public class SecurityConfig {
                 auth.setDetails(role);
 
                 return Mono.just(auth);
-            } catch (JwtException e) {
+            } catch (JwtException | ExpiredJwtException e) {
                 return Mono.error(new RuntimeException("Invalid JWT Token: " + e.getMessage()));
             }
         };
